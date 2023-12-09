@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PassengerCreationRequest{
+public class PassengerCreationRequest {
     String name;
     String surname;
     String phone;

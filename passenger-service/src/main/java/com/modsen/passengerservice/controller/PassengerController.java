@@ -6,9 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 @RestController
 @RequestMapping("api/v1/passengers")
 public class PassengerController {
@@ -21,8 +18,14 @@ public class PassengerController {
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
-    public PassengersListResponse getAllPassengers() {
-        return passengerService.getList();
+    public ResponseEntity<?> getAllPassengers(
+            @RequestParam (required = false) Integer offset,
+            @RequestParam (required = false) Integer page,
+            @RequestParam (required = false) String field) {
+        if(offset != null && page !=null && field!=null) return ResponseEntity.ok(passengerService.getListWithPaginationAndSort(offset, page, field));
+        else if (offset != null && page != null) return  ResponseEntity.ok(passengerService.getListWithPagination(offset, page));
+        else if (field !=null) return ResponseEntity.ok(passengerService.getListWithSort(field));
+        else return ResponseEntity.ok(passengerService.getList());
     }
 
     @GetMapping("/{id}")

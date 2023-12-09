@@ -6,6 +6,9 @@ import com.modsen.passengerservice.exceptions.NotFoundException;
 import com.modsen.passengerservice.repository.PassengerRepository;
 import com.modsen.passengerservice.service.PassengerService;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -53,5 +56,17 @@ public class PassengerServiceImpl implements PassengerService {
         Passenger passenger = toModel(dto);
         passenger.setId(id);
         passengerRepository.save(passenger);
+    }
+
+    public Page<PassengerResponse> getListWithPaginationAndSort(Integer offset, Integer page, String field) {
+        return passengerRepository.findAll(PageRequest.of(page, offset).withSort(Sort.by(field))).map(this::toDTO);
+    }
+
+    public Page<PassengerResponse> getListWithPagination(Integer offset, Integer page) {
+        return passengerRepository.findAll(PageRequest.of(page, offset)).map(this::toDTO);
+    }
+
+    public PassengersListResponse getListWithSort(String field) {
+        return new PassengersListResponse(passengerRepository.findAll(Sort.by(field)).stream().map(this::toDTO).toList());
     }
 }

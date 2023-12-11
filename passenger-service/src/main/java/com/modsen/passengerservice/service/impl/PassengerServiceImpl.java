@@ -32,7 +32,10 @@ public class PassengerServiceImpl implements PassengerService {
         dto.setRating(getRatingById(dto.getId()));
         return dto;
     }
-    private Passenger toModel(PassengerCreationRequest passenger) { return modelMapper.map(passenger, Passenger.class);}
+
+    private Passenger toModel(PassengerCreationRequest passenger) {
+        return modelMapper.map(passenger, Passenger.class);
+    }
 
     public PassengersListResponse getList() {
         List<PassengerResponse> passengers = passengerRepository.findAll().stream().map(this::toDTO).toList();
@@ -41,18 +44,18 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengerResponse getDTOById(Long id) {
         Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
-        if(optionalPassenger.isPresent()) return optionalPassenger.map(this::toDTO).get();
+        if (optionalPassenger.isPresent()) return optionalPassenger.map(this::toDTO).get();
         else throw new NotFoundException("Пассажир с id " + id + " не найден");
     }
 
     public Passenger getEntityById(Long id) {
         Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
-        if(optionalPassenger.isPresent()) return optionalPassenger.get();
+        if (optionalPassenger.isPresent()) return optionalPassenger.get();
         else throw new NotFoundException("Пассажир с id " + id + " не найден");
     }
 
     public void deletePassenger(Long id) {
-        if(getEntityById(id)!=null) passengerRepository.deleteById(id);
+        if (getEntityById(id) != null) passengerRepository.deleteById(id);
     }
 
     public PassengerResponse addPassenger(PassengerCreationRequest dto) {
@@ -61,7 +64,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public void updatePassenger(Long id, PassengerCreationRequest dto) {
-        if(getEntityById(id)!=null) {
+        if (getEntityById(id) != null) {
             checkConstraints(id, dto);
             Passenger passenger = toModel(dto);
             passenger.setId(id);
@@ -72,13 +75,16 @@ public class PassengerServiceImpl implements PassengerService {
     private void checkConstraints(Long id, PassengerCreationRequest dto) {
         Passenger passengerByEmail = getEntityByEmail(dto.getEmail());
         Passenger passengerByPhone = getEntityByPhone(dto.getPhone());
-        if(passengerByEmail!=null && !Objects.equals(passengerByEmail.getId(), id)) throw new NotCreatedException("Passenger with email={"+dto.getEmail()+"} is already exists");
-        if(passengerByPhone!=null && !Objects.equals(passengerByPhone.getId(), id)) throw new NotCreatedException("Passenger with phone={"+dto.getPhone()+"} is already exists");
+        if (passengerByEmail != null && !Objects.equals(passengerByEmail.getId(), id))
+            throw new NotCreatedException("Passenger with email={" + dto.getEmail() + "} is already exists");
+        if (passengerByPhone != null && !Objects.equals(passengerByPhone.getId(), id))
+            throw new NotCreatedException("Passenger with phone={" + dto.getPhone() + "} is already exists");
     }
 
     public Passenger getEntityByEmail(String email) {
         return passengerRepository.findPassengerByEmail(email);
     }
+
     public Passenger getEntityByPhone(String phone) {
         return passengerRepository.findPassengerByPhone(phone);
     }
@@ -98,7 +104,7 @@ public class PassengerServiceImpl implements PassengerService {
     public Double getRatingById(Long id) {
         // в будущем здесь будет обращение к сервису рейтингов для получения рейтинга пассажира
         double rating = new Random().nextDouble(1, 5);
-        rating=Math.round(rating*10)/10.0;
+        rating = Math.round(rating * 10) / 10.0;
         return rating;
     }
 }

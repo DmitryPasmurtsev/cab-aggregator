@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-
 @Table(name = "passengers")
 @Entity
 @Data
@@ -23,5 +22,4 @@ public class Passenger {
     String phone;
     @Column(name = "email", unique = true)
     String email;
-
 }

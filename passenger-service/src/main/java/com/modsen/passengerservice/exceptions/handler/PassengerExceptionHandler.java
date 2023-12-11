@@ -3,7 +3,6 @@ package com.modsen.passengerservice.exceptions.handler;
 import com.modsen.passengerservice.exceptions.NotCreatedException;
 import com.modsen.passengerservice.exceptions.NotFoundException;
 import com.modsen.passengerservice.exceptions.response.ExceptionResponse;
-import org.postgresql.util.PSQLException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,35 +18,39 @@ import java.util.Map;
 @ControllerAdvice
 public class PassengerExceptionHandler {
     @ExceptionHandler(value = {NotFoundException.class})
-    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex){
+    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex) {
         ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<Object> handleNotCreatedException(NotCreatedException ex){
+    public ResponseEntity<Object> handleNotCreatedException(NotCreatedException ex) {
         ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(value = {PropertyReferenceException.class})
-    public ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex){
+    public ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex) {
         ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(value = {IllegalArgumentException.class})
-    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex){
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
         ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
-    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<Map<String, String>> responseList = new ArrayList<>();
         Map<String, String> responseMap = new HashMap<>();
         ex.getFieldErrors().forEach(err -> {
-            responseMap.put("field",err.getField());
+            responseMap.put("field", err.getField());
             responseMap.put("defaultMessage", err.getDefaultMessage());
             responseList.add(new HashMap<>(responseMap));
         });
         ExceptionResponse<List<Map<String, String>>> response = new ExceptionResponse<>(responseList);
-        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

@@ -2,11 +2,13 @@ server:
   port: 9001
 
 spring:
+  liquibase:
+    enabled: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/passengers?createDatabaseIfNotExist=true
+    url: jdbc:postgresql://localhost:5432/passengers
     username: postgres
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true

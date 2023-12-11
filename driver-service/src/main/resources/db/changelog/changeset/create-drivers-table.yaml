@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-drivers
+      author: DmitryPasmurtsev
+      changes:
+        - createTable:
+            tableName: drivers
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: surname
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone
+                  type: varchar(11)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: is_available
+                  type: boolean
+                  defaultOnNull: true
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

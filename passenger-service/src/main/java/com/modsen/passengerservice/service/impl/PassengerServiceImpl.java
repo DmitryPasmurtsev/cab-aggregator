@@ -2,6 +2,7 @@ package com.modsen.passengerservice.service.impl;
 
 import com.modsen.passengerservice.dto.*;
 import com.modsen.passengerservice.entity.Passenger;
+import com.modsen.passengerservice.exceptions.NotCreatedException;
 import com.modsen.passengerservice.exceptions.NotFoundException;
 import com.modsen.passengerservice.repository.PassengerRepository;
 import com.modsen.passengerservice.service.PassengerService;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class PassengerServiceImpl implements PassengerService {
@@ -24,7 +26,11 @@ public class PassengerServiceImpl implements PassengerService {
         this.modelMapper = modelMapper;
     }
 
-    private PassengerResponse toDTO(Passenger passenger) { return modelMapper.map(passenger, PassengerResponse.class);}
+    private PassengerResponse toDTO(Passenger passenger) {
+        PassengerResponse dto = modelMapper.map(passenger, PassengerResponse.class);
+        dto.setRating(getRatingById(dto.getId()));
+        return dto;
+    }
     private Passenger toModel(PassengerCreationRequest passenger) { return modelMapper.map(passenger, Passenger.class);}
 
     public PassengersListResponse getList() {
@@ -49,13 +55,29 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengerResponse addPassenger(PassengerCreationRequest dto) {
+        checkConstraints(dto);
         return toDTO(passengerRepository.save(toModel(dto)));
     }
 
     public void updatePassenger(Long id, PassengerCreationRequest dto) {
-        Passenger passenger = toModel(dto);
-        passenger.setId(id);
-        passengerRepository.save(passenger);
+        if(getEntityById(id)!=null) {
+            checkConstraints(dto);
+            Passenger passenger = toModel(dto);
+            passenger.setId(id);
+            passengerRepository.save(passenger);
+        }
+    }
+
+    private void checkConstraints(PassengerCreationRequest dto) {
+        if(getEntityByEmail(dto.getEmail())!=null) throw new NotCreatedException("Passenger with email={"+dto.getEmail()+"} is already exists");
+        if(getEntityByPhone(dto.getPhone())!=null) throw new NotCreatedException("Passenger with phone={"+dto.getPhone()+"} is already exists");
+    }
+
+    public Passenger getEntityByEmail(String email) {
+        return passengerRepository.findPassengerByEmail(email);
+    }
+    public Passenger getEntityByPhone(String phone) {
+        return passengerRepository.findPassengerByPhone(phone);
     }
 
     public Page<PassengerResponse> getListWithPaginationAndSort(Integer offset, Integer page, String field) {
@@ -68,5 +90,12 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengersListResponse getListWithSort(String field) {
         return new PassengersListResponse(passengerRepository.findAll(Sort.by(field)).stream().map(this::toDTO).toList());
+    }
+
+    public Double getRatingById(Long id) {
+        // в будущем здесь будет обращение к сервису рейтингов для получения рейтинга пассажира
+        double rating = new Random().nextDouble(1, 5);
+        rating=Math.round(rating*10)/10.0;
+        return rating;
     }
 }

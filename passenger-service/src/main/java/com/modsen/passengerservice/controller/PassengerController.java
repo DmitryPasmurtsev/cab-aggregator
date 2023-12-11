@@ -2,6 +2,7 @@ package com.modsen.passengerservice.controller;
 
 import com.modsen.passengerservice.dto.*;
 import com.modsen.passengerservice.service.PassengerService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,13 +37,13 @@ public class PassengerController {
 
     @PostMapping
     @ResponseStatus(value = HttpStatus.OK)
-    public StringResponse addPassenger(@RequestBody PassengerCreationRequest passengerDTO) {
+    public StringResponse addPassenger(@RequestBody @Valid PassengerCreationRequest passengerDTO) {
         return new StringResponse("Добавлен пассажир с id " + passengerService.addPassenger(passengerDTO).getId());
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(value = HttpStatus.OK)
-    public StringResponse updatePassenger(@PathVariable Long id, @RequestBody PassengerCreationRequest passengerDTO) {
+    public StringResponse updatePassenger(@PathVariable Long id, @Valid @RequestBody PassengerCreationRequest passengerDTO) {
         passengerService.updatePassenger(id, passengerDTO);
         return new StringResponse("Изменен пассажир с id " + id);
     }
@@ -52,6 +53,12 @@ public class PassengerController {
     public StringResponse deletePassenger(@PathVariable Long id) {
         passengerService.deletePassenger(id);
         return new StringResponse("Удален пассажир с id " + id);
+    }
+
+    @GetMapping("/{id}/rating")
+    @ResponseStatus(value = HttpStatus.OK)
+    public RatingResponse getPassengerRating(@PathVariable Long id) {
+        return new RatingResponse(passengerService.getRatingById(id), id);
     }
 
 

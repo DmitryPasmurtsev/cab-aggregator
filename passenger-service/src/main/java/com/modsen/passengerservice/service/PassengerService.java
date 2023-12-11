@@ -18,4 +18,5 @@ public interface PassengerService {
     Page<PassengerResponse> getListWithPaginationAndSort(Integer offset, Integer page, String field);
     Page<PassengerResponse> getListWithPagination(Integer offset, Integer page);
     PassengersListResponse getListWithSort(String field);
+    Double getRatingById(Long id);
 }

@@ -14,5 +14,5 @@ public class PassengerResponse {
     String surname;
     String phone;
     String email;
-    Float rating;
+    Double rating;
 }

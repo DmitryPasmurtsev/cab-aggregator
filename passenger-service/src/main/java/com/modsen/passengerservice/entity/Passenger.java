@@ -19,11 +19,9 @@ public class Passenger {
     String name;
     @Column(name = "surname")
     String surname;
-    @Column(name = "phone")
+    @Column(name = "phone", unique = true)
     String phone;
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     String email;
-    @Column(name = "rating")
-    Float rating;
 
 }

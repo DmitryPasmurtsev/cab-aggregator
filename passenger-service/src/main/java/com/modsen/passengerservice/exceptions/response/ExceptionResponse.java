@@ -8,6 +8,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExceptionResponse {
-    final String message;
+public class ExceptionResponse<T> {
+    T errorMessage;
 }

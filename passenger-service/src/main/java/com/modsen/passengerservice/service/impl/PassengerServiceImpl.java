@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
@@ -55,22 +56,24 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengerResponse addPassenger(PassengerCreationRequest dto) {
-        checkConstraints(dto);
+        checkConstraints(null, dto);
         return toDTO(passengerRepository.save(toModel(dto)));
     }
 
     public void updatePassenger(Long id, PassengerCreationRequest dto) {
         if(getEntityById(id)!=null) {
-            checkConstraints(dto);
+            checkConstraints(id, dto);
             Passenger passenger = toModel(dto);
             passenger.setId(id);
             passengerRepository.save(passenger);
         }
     }
 
-    private void checkConstraints(PassengerCreationRequest dto) {
-        if(getEntityByEmail(dto.getEmail())!=null) throw new NotCreatedException("Passenger with email={"+dto.getEmail()+"} is already exists");
-        if(getEntityByPhone(dto.getPhone())!=null) throw new NotCreatedException("Passenger with phone={"+dto.getPhone()+"} is already exists");
+    private void checkConstraints(Long id, PassengerCreationRequest dto) {
+        Passenger passengerByEmail = getEntityByEmail(dto.getEmail());
+        Passenger passengerByPhone = getEntityByPhone(dto.getPhone());
+        if(passengerByEmail!=null && !Objects.equals(passengerByEmail.getId(), id)) throw new NotCreatedException("Passenger with email={"+dto.getEmail()+"} is already exists");
+        if(passengerByPhone!=null && !Objects.equals(passengerByPhone.getId(), id)) throw new NotCreatedException("Passenger with phone={"+dto.getPhone()+"} is already exists");
     }
 
     public Passenger getEntityByEmail(String email) {

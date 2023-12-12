@@ -1,4 +1,4 @@
-package com.modsen.passengerservice.dto;
+package com.modsen.passengerservice.dto.response;
 
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -19,6 +19,7 @@ import java.util.Map;
 public class PassengerExceptionHandler {
     @ExceptionHandler(value = {NotFoundException.class})
     public ResponseEntity<Object> handleNotFoundException(NotFoundException ex) {
+
         ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }

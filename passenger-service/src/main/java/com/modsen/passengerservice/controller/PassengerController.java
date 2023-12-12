@@ -1,40 +1,41 @@
 package com.modsen.passengerservice.controller;
 
-import com.modsen.passengerservice.dto.*;
+import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
+import com.modsen.passengerservice.dto.response.PassengerResponse;
+import com.modsen.passengerservice.dto.response.PassengersListResponse;
+import com.modsen.passengerservice.dto.response.RatingResponse;
+import com.modsen.passengerservice.dto.response.StringResponse;
 import com.modsen.passengerservice.service.PassengerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/passengers")
+@RequiredArgsConstructor
 @Tag(name = "Контроллер для работы с пассажирами")
 public class PassengerController {
 
     private final PassengerService passengerService;
-
-    public PassengerController(PassengerService passengerService) {
-        this.passengerService = passengerService;
-    }
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение всех пассажиров"
     )
-    public ResponseEntity<?> getAllPassengers(
+    public PassengersListResponse getAllPassengers(
             @RequestParam(required = false) Integer offset,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String field) {
         if (offset != null && page != null && field != null)
-            return ResponseEntity.ok(passengerService.getListWithPaginationAndSort(offset, page, field));
+            return passengerService.getListWithPaginationAndSort(offset, page, field);
         else if (offset != null && page != null)
-            return ResponseEntity.ok(passengerService.getListWithPagination(offset, page));
-        else if (field != null) return ResponseEntity.ok(passengerService.getListWithSort(field));
-        else return ResponseEntity.ok(passengerService.getList());
+            return passengerService.getListWithPagination(offset, page);
+        else if (field != null) return passengerService.getListWithSort(field);
+        else return passengerService.getList();
     }
 
     @GetMapping("/{id}")
@@ -43,7 +44,7 @@ public class PassengerController {
             summary = "Получение пассажира по id"
     )
     public PassengerResponse getPassengerById(@PathVariable Long id) {
-        return passengerService.getDTOById(id);
+        return passengerService.getById(id);
     }
 
     @PostMapping
@@ -51,8 +52,8 @@ public class PassengerController {
     @Operation(
             summary = "Добавление пассажира"
     )
-    public StringResponse addPassenger(@RequestBody @Valid PassengerCreationRequest passengerDTO) {
-        return new StringResponse("Добавлен пассажир с id " + passengerService.addPassenger(passengerDTO).getId());
+    public PassengerResponse addPassenger(@RequestBody @Valid PassengerCreationRequest passengerDTO) {
+        return passengerService.addPassenger(passengerDTO);
     }
 
     @PatchMapping("/{id}")
@@ -60,9 +61,8 @@ public class PassengerController {
     @Operation(
             summary = "Редактирование информации о пассажире"
     )
-    public StringResponse updatePassenger(@PathVariable Long id, @Valid @RequestBody PassengerCreationRequest passengerDTO) {
-        passengerService.updatePassenger(id, passengerDTO);
-        return new StringResponse("Изменен пассажир с id " + id);
+    public PassengerResponse updatePassenger(@PathVariable Long id, @Valid @RequestBody PassengerCreationRequest passengerDTO) {
+        return passengerService.updatePassenger(id, passengerDTO);
     }
 
     @DeleteMapping("/{id}")
@@ -72,7 +72,7 @@ public class PassengerController {
     )
     public StringResponse deletePassenger(@PathVariable Long id) {
         passengerService.deletePassenger(id);
-        return new StringResponse("Удален пассажир с id " + id);
+        return new StringResponse("Passenger with id={" + id + "} has been removed");
     }
 
 

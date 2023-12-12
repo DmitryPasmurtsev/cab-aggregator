@@ -18,8 +18,8 @@ public class Passenger {
     String name;
     @Column(name = "surname")
     String surname;
-    @Column(name = "phone", unique = true)
+    @Column(name = "phone")
     String phone;
-    @Column(name = "email", unique = true)
+    @Column(name = "email")
     String email;
 }

@@ -45,7 +45,7 @@ public class PassengerServiceImpl implements PassengerService {
     public PassengerResponse getById(Long id) {
         Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
         if (optionalPassenger.isPresent()) return optionalPassenger.map(this::toDTO).get();
-        else throw new NotFoundException("Passenger with id={" + id + "} not found");
+        else throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
     }
 
     public void deletePassenger(Long id) {
@@ -70,14 +70,14 @@ public class PassengerServiceImpl implements PassengerService {
         PassengerResponse passengerByEmail = getByEmail(dto.getEmail());
         PassengerResponse passengerByPhone = getByPhone(dto.getPhone());
         if (passengerByEmail != null && !Objects.equals(passengerByEmail.getId(), id))
-            throw new NotCreatedException("Passenger with email={" + dto.getEmail() + "} is already exists");
+            throw new NotCreatedException("email", "Passenger with email={" + dto.getEmail() + "} is already exists");
         if (passengerByPhone != null && !Objects.equals(passengerByPhone.getId(), id))
-            throw new NotCreatedException("Passenger with phone={" + dto.getPhone() + "} is already exists");
+            throw new NotCreatedException("phone", "Passenger with phone={" + dto.getPhone() + "} is already exists");
     }
 
     private void checkExistence(Long id) {
         if (passengerRepository.findById(id).isEmpty())
-            throw new NotFoundException("Passenger with id={" + id + "} not found");
+            throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
     }
 
     public PassengerResponse getByEmail(String email) {

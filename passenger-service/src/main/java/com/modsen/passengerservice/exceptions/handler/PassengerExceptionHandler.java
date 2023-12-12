@@ -1,5 +1,6 @@
 package com.modsen.passengerservice.exceptions.handler;
 
+import com.modsen.passengerservice.exceptions.CustomException;
 import com.modsen.passengerservice.exceptions.NotCreatedException;
 import com.modsen.passengerservice.exceptions.NotFoundException;
 import com.modsen.passengerservice.exceptions.response.ExceptionResponse;
@@ -17,29 +18,37 @@ import java.util.Map;
 
 @ControllerAdvice
 public class PassengerExceptionHandler {
-    @ExceptionHandler(value = {NotFoundException.class})
-    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex) {
+    static final String FIRST_KEY = "cause";
+    static final String SECOND_KEY = "message";
 
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<Object> handleNotCreatedException(NotCreatedException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(value = {NotFoundException.class, NotCreatedException.class})
+    public ResponseEntity<ExceptionResponse> handleNotCreatedException(CustomException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put(FIRST_KEY, ex.getField());
+        error.put(SECOND_KEY, ex.getMessage());
+        List<Map<String, String>> list = new ArrayList<>();
+        list.add(error);
+        return new ResponseEntity<>(new ExceptionResponse(list), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {PropertyReferenceException.class})
-    public ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ExceptionResponse> handlePropertyReferenceException(PropertyReferenceException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put(FIRST_KEY, ex.getPropertyName());
+        error.put(SECOND_KEY, ex.getMessage());
+        List<Map<String, String>> list = new ArrayList<>();
+        list.add(error);
+        return new ResponseEntity<>(new ExceptionResponse(list), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
-    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ExceptionResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put(FIRST_KEY, "pagination");
+        error.put(SECOND_KEY, ex.getMessage());
+        List<Map<String, String>> list = new ArrayList<>();
+        list.add(error);
+        return new ResponseEntity<>(new ExceptionResponse(list), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
@@ -47,11 +56,11 @@ public class PassengerExceptionHandler {
         List<Map<String, String>> responseList = new ArrayList<>();
         Map<String, String> responseMap = new HashMap<>();
         ex.getFieldErrors().forEach(err -> {
-            responseMap.put("field", err.getField());
-            responseMap.put("defaultMessage", err.getDefaultMessage());
+            responseMap.put(FIRST_KEY, err.getField());
+            responseMap.put(SECOND_KEY, err.getDefaultMessage());
             responseList.add(new HashMap<>(responseMap));
         });
-        ExceptionResponse<List<Map<String, String>>> response = new ExceptionResponse<>(responseList);
+        ExceptionResponse response = new ExceptionResponse(responseList);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

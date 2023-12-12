@@ -1,4 +1,4 @@
-package com.modsen.driverservice.dto;
+package com.modsen.driverservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

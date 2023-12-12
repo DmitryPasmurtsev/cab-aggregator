@@ -1,43 +1,41 @@
 package com.modsen.driverservice.controller;
 
-import com.modsen.driverservice.dto.DriverCreationRequest;
-import com.modsen.driverservice.dto.DriverResponse;
-import com.modsen.driverservice.dto.RatingResponse;
-import com.modsen.driverservice.dto.StringResponse;
+import com.modsen.driverservice.dto.request.DriverCreationRequest;
+import com.modsen.driverservice.dto.response.DriverResponse;
+import com.modsen.driverservice.dto.response.DriversListResponse;
+import com.modsen.driverservice.dto.response.RatingResponse;
+import com.modsen.driverservice.dto.response.StringResponse;
 import com.modsen.driverservice.service.DriverService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/drivers")
+@RequiredArgsConstructor
 @Tag(name = "Контроллер для работы с водителями")
 public class DriverController {
 
     private final DriverService driverService;
-
-    public DriverController(DriverService driverService) {
-        this.driverService = driverService;
-    }
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение всех водителей"
     )
-    public ResponseEntity<?> getAllDrivers(
+    public DriversListResponse getAllDrivers(
             @RequestParam(required = false) Integer offset,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String field) {
         if (offset != null && page != null && field != null)
-            return ResponseEntity.ok(driverService.getAllDrivers(offset, page, field));
+            return driverService.getAllDrivers(offset, page, field);
         else if (offset != null && page != null)
-            return ResponseEntity.ok(driverService.getAllDrivers(offset, page));
-        else if (field != null) return ResponseEntity.ok(driverService.getAllDrivers(field));
-        else return ResponseEntity.ok(driverService.getAllDrivers());
+            return driverService.getAllDrivers(offset, page);
+        else if (field != null) return driverService.getAllDrivers(field);
+        else return driverService.getAllDrivers();
     }
 
     @GetMapping("/available")
@@ -45,16 +43,16 @@ public class DriverController {
     @Operation(
             summary = "Получение доступных водителей"
     )
-    public ResponseEntity<?> getAvailableDrivers(
+    public DriversListResponse getAvailableDrivers(
             @RequestParam(required = false) Integer offset,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String field) {
         if (offset != null && page != null && field != null)
-            return ResponseEntity.ok(driverService.getAvailableDrivers(offset, page, field));
+            return driverService.getAvailableDrivers(offset, page, field);
         else if (offset != null && page != null)
-            return ResponseEntity.ok(driverService.getAvailableDrivers(offset, page));
-        else if (field != null) return ResponseEntity.ok(driverService.getAvailableDrivers(field));
-        else return ResponseEntity.ok(driverService.getAvailableDrivers());
+            return driverService.getAvailableDrivers(offset, page);
+        else if (field != null) return driverService.getAvailableDrivers(field);
+        else return driverService.getAvailableDrivers();
     }
 
     @GetMapping("/{id}")
@@ -63,8 +61,8 @@ public class DriverController {
             summary = "Получение водителя по id"
     )
     public DriverResponse getDriverById(@PathVariable Long id) {
-        System.err.println(driverService.getDTOById(id).isAvailable());
-        return driverService.getDTOById(id);
+        System.err.println(driverService.getById(id).isAvailable());
+        return driverService.getById(id);
     }
 
     @PostMapping
@@ -72,8 +70,8 @@ public class DriverController {
     @Operation(
             summary = "Добавление водителя"
     )
-    public StringResponse addDriver(@RequestBody @Valid DriverCreationRequest driverDTO) {
-        return new StringResponse("Driver with id={" + driverService.addDriver(driverDTO).getId() + "} has been added");
+    public DriverResponse addDriver(@RequestBody @Valid DriverCreationRequest driverDTO) {
+        return driverService.addDriver(driverDTO);
     }
 
     @PatchMapping("/{id}")
@@ -81,9 +79,8 @@ public class DriverController {
     @Operation(
             summary = "Редактирование информации о водителе"
     )
-    public StringResponse updateDriver(@PathVariable Long id, @Valid @RequestBody DriverCreationRequest driverDTO) {
-        driverService.updateDriver(id, driverDTO);
-        return new StringResponse("Driver with id={" + id + "} has been changed");
+    public DriverResponse updateDriver(@PathVariable Long id, @Valid @RequestBody DriverCreationRequest driverDTO) {
+        return driverService.updateDriver(id, driverDTO);
     }
 
     @DeleteMapping("/{id}")

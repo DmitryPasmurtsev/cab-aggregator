@@ -1,4 +1,4 @@
-package com.modsen.driverservice.dto;
+package com.modsen.driverservice.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

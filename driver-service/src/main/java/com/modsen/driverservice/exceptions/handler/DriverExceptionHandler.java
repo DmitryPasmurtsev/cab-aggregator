@@ -1,5 +1,6 @@
 package com.modsen.driverservice.exceptions.handler;
 
+import com.modsen.driverservice.exceptions.CustomException;
 import com.modsen.driverservice.exceptions.NotCreatedException;
 import com.modsen.driverservice.exceptions.NotFoundException;
 import com.modsen.driverservice.exceptions.response.ExceptionResponse;
@@ -10,47 +11,51 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @ControllerAdvice
 public class DriverExceptionHandler {
+    static final String FIRST_KEY = "cause";
+    static final String SECOND_KEY = "message";
+
     @ExceptionHandler(value = {NotFoundException.class})
-    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ExceptionResponse> handleNotFoundException(CustomException ex) {
+        return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<Object> handleNotCreatedException(NotCreatedException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ExceptionResponse> handleNotCreatedException(CustomException ex) {
+        return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {PropertyReferenceException.class})
-    public ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ExceptionResponse> handlePropertyReferenceException(PropertyReferenceException ex) {
+        return new ResponseEntity<>(createResponse(ex.getPropertyName(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
-    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ExceptionResponse<String> response = new ExceptionResponse<>(ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ExceptionResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return new ResponseEntity<>(createResponse("pagination", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
-    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<Map<String, String>> responseList = new ArrayList<>();
         Map<String, String> responseMap = new HashMap<>();
         ex.getFieldErrors().forEach(err -> {
-            responseMap.put("field", err.getField());
-            responseMap.put("defaultMessage", err.getDefaultMessage());
+            responseMap.put(FIRST_KEY, err.getField());
+            responseMap.put(SECOND_KEY, err.getDefaultMessage());
             responseList.add(new HashMap<>(responseMap));
         });
-        ExceptionResponse<List<Map<String, String>>> response = new ExceptionResponse<>(responseList);
+        ExceptionResponse response = new ExceptionResponse(responseList);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    private ExceptionResponse createResponse(String firstValue, String secondValue) {
+        Map<String, String> error = new HashMap<>();
+        error.put(FIRST_KEY, firstValue);
+        error.put(SECOND_KEY, secondValue);
+        List<Map<String, String>> list = Collections.singletonList(error);
+        return new ExceptionResponse(list);
     }
 }

@@ -1,10 +1,8 @@
 package com.modsen.driverservice.service;
 
-import com.modsen.driverservice.dto.DriverCreationRequest;
-import com.modsen.driverservice.dto.DriverResponse;
-import com.modsen.driverservice.dto.DriversListResponse;
-import com.modsen.driverservice.entity.Driver;
-import org.springframework.data.domain.Page;
+import com.modsen.driverservice.dto.request.DriverCreationRequest;
+import com.modsen.driverservice.dto.response.DriverResponse;
+import com.modsen.driverservice.dto.response.DriversListResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,25 +11,23 @@ public interface DriverService {
 
     DriversListResponse getAvailableDrivers();
 
-    DriverResponse getDTOById(Long id);
-
-    Driver getEntityById(Long id);
+    DriverResponse getById(Long id);
 
     void deleteDriver(Long id);
 
     DriverResponse addDriver(DriverCreationRequest dto);
 
-    void updateDriver(Long id, DriverCreationRequest dto);
+    DriverResponse updateDriver(Long id, DriverCreationRequest dto);
 
-    Page<DriverResponse> getAllDrivers(Integer offset, Integer page, String field);
+    DriversListResponse getAllDrivers(Integer offset, Integer page, String field);
 
-    Page<DriverResponse> getAllDrivers(Integer offset, Integer page);
+    DriversListResponse getAllDrivers(Integer offset, Integer page);
 
     DriversListResponse getAllDrivers(String field);
 
-    Page<DriverResponse> getAvailableDrivers(Integer offset, Integer page, String field);
+    DriversListResponse getAvailableDrivers(Integer offset, Integer page, String field);
 
-    Page<DriverResponse> getAvailableDrivers(Integer offset, Integer page);
+    DriversListResponse getAvailableDrivers(Integer offset, Integer page);
 
     DriversListResponse getAvailableDrivers(String field);
 

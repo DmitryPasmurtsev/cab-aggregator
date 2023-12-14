@@ -22,7 +22,6 @@ public class PassengerController {
     private final PassengerService passengerService;
 
     @GetMapping
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение всех пассажиров"
     )
@@ -39,7 +38,6 @@ public class PassengerController {
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение пассажира по id"
     )
@@ -48,7 +46,7 @@ public class PassengerController {
     }
 
     @PostMapping
-    @ResponseStatus(value = HttpStatus.OK)
+    @ResponseStatus(value = HttpStatus.CREATED)
     @Operation(
             summary = "Добавление пассажира"
     )
@@ -57,7 +55,6 @@ public class PassengerController {
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Редактирование информации о пассажире"
     )
@@ -66,7 +63,7 @@ public class PassengerController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Удаление пассажира"
     )
@@ -80,7 +77,6 @@ public class PassengerController {
     @Operation(
             summary = "Получение рейтинга пассажира"
     )
-    @ResponseStatus(value = HttpStatus.OK)
     //этот метод в будущем стоит перенести в микросервис рейтингов
     public RatingResponse getPassengerRating(@PathVariable Long id) {
         return new RatingResponse(passengerService.getRatingById(id), id);

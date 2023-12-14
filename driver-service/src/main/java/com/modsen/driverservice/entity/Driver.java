@@ -3,11 +3,14 @@ package com.modsen.driverservice.entity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Table(name = "drivers")
 @Entity
-@Data
+@Setter
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Driver {
     @Id

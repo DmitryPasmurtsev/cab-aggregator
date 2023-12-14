@@ -15,8 +15,8 @@ import java.util.*;
 
 @ControllerAdvice
 public class DriverExceptionHandler {
-    static final String FIRST_KEY = "cause";
-    static final String SECOND_KEY = "message";
+    private static final String FIRST_KEY = "cause";
+    private static final String SECOND_KEY = "message";
 
     @ExceptionHandler(value = {NotFoundException.class})
     public ResponseEntity<ExceptionResponse> handleNotFoundException(CustomException ex) {

@@ -26,7 +26,6 @@ public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
     private final ModelMapper modelMapper;
 
-
     private DriverResponse toDTO(Driver driver) {
         if (driver == null) return null;
         DriverResponse dto = modelMapper.map(driver, DriverResponse.class);

@@ -76,7 +76,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private void checkExistence(Long id) {
-        if (passengerRepository.findById(id).isEmpty())
+        if (!passengerRepository.existsById(id))
             throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
     }
 

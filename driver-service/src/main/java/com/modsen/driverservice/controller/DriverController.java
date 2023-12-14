@@ -22,7 +22,6 @@ public class DriverController {
     private final DriverService driverService;
 
     @GetMapping
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение всех водителей"
     )
@@ -39,7 +38,6 @@ public class DriverController {
     }
 
     @GetMapping("/available")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение доступных водителей"
     )
@@ -56,7 +54,6 @@ public class DriverController {
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Получение водителя по id"
     )
@@ -66,7 +63,7 @@ public class DriverController {
     }
 
     @PostMapping
-    @ResponseStatus(value = HttpStatus.OK)
+    @ResponseStatus(value = HttpStatus.CREATED)
     @Operation(
             summary = "Добавление водителя"
     )
@@ -75,7 +72,6 @@ public class DriverController {
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Редактирование информации о водителе"
     )
@@ -84,7 +80,7 @@ public class DriverController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Удаление водителя"
     )
@@ -98,14 +94,12 @@ public class DriverController {
     @Operation(
             summary = "Получение рейтинга водителя"
     )
-    @ResponseStatus(value = HttpStatus.OK)
     //этот метод в будущем стоит перенести в микросервис рейтингов
     public RatingResponse getDriverRating(@PathVariable Long id) {
         return new RatingResponse(driverService.getRatingById(id), id);
     }
 
     @PatchMapping("/{id}/available")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
             summary = "Изменение статуса"
     )

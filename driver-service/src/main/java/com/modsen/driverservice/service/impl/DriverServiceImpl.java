@@ -38,13 +38,21 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers() {
-        List<DriverResponse> passengers = driverRepository.findAll().stream().map(this::toDTO).toList();
-        return new DriversListResponse(passengers);
+        List<DriverResponse> drivers = driverRepository.findAll().stream().map(this::toDTO).toList();
+        return DriversListResponse.builder()
+                .drivers(drivers)
+                .size(drivers.size())
+                .total(drivers.size())
+                .build();
     }
 
     public DriversListResponse getAvailableDrivers() {
         List<DriverResponse> drivers = driverRepository.findAllByIsAvailableIsTrue().stream().map(this::toDTO).toList();
-        return new DriversListResponse(drivers);
+        return DriversListResponse.builder()
+                .drivers(drivers)
+                .size(drivers.size())
+                .total(drivers.size())
+                .build();
     }
 
     public DriverResponse getById(Long id) {
@@ -84,32 +92,62 @@ public class DriverServiceImpl implements DriverService {
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page, String field) {
         Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset).withSort(Sort.by(field))).map(this::toDTO);
-        return new DriversListResponse(responsePage.getContent(), responsePage.getPageable().getPageNumber(), (int) responsePage.getTotalElements(), field);
+        return DriversListResponse.builder()
+                .drivers(responsePage.getContent())
+                .size(responsePage.getContent().size())
+                .page(responsePage.getPageable().getPageNumber())
+                .total((int) responsePage.getTotalElements())
+                .sortedByField(field)
+                .build();
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page) {
         Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset)).map(this::toDTO);
-        return new DriversListResponse(responsePage.getContent(), responsePage.getPageable().getPageNumber(), (int) responsePage.getTotalElements());
+        return DriversListResponse.builder()
+                .drivers(responsePage.getContent())
+                .size(responsePage.getContent().size())
+                .page(responsePage.getPageable().getPageNumber())
+                .total((int) responsePage.getTotalElements())
+                .build();
     }
 
     public DriversListResponse getAllDrivers(String field) {
         List<DriverResponse> responseList = driverRepository.findAll(Sort.by(field)).stream().map(this::toDTO).toList();
-        return new DriversListResponse(responseList, field);
+        return DriversListResponse.builder()
+                .drivers(responseList)
+                .size(responseList.size())
+                .sortedByField(field)
+                .build();
     }
 
     public DriversListResponse getAvailableDrivers(Integer offset, Integer page, String field) {
         Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset).withSort(Sort.by(field))).map(this::toDTO);
-        return new DriversListResponse(responsePage.getContent(), responsePage.getPageable().getPageNumber(), (int) responsePage.getTotalElements(), field);
+        return DriversListResponse.builder()
+                .drivers(responsePage.getContent())
+                .size(responsePage.getContent().size())
+                .page(responsePage.getPageable().getPageNumber())
+                .total((int) responsePage.getTotalElements())
+                .sortedByField(field)
+                .build();
     }
 
     public DriversListResponse getAvailableDrivers(Integer offset, Integer page) {
         Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset)).map(this::toDTO);
-        return new DriversListResponse(responsePage.getContent(), responsePage.getPageable().getPageNumber(), (int) responsePage.getTotalElements());
+        return DriversListResponse.builder()
+                .drivers(responsePage.getContent())
+                .size(responsePage.getContent().size())
+                .page(responsePage.getPageable().getPageNumber())
+                .total((int) responsePage.getTotalElements())
+                .build();
     }
 
     public DriversListResponse getAvailableDrivers(String field) {
         List<DriverResponse> responseList = driverRepository.findAllByIsAvailableIsTrue(Sort.by(field)).stream().map(this::toDTO).toList();
-        return new DriversListResponse(responseList, field);
+        return DriversListResponse.builder()
+                .drivers(responseList)
+                .size(responseList.size())
+                .sortedByField(field)
+                .build();
     }
 
     public Double getRatingById(Long id) {

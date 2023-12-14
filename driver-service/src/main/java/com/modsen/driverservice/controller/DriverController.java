@@ -58,7 +58,6 @@ public class DriverController {
             summary = "Получение водителя по id"
     )
     public DriverResponse getDriverById(@PathVariable Long id) {
-        System.err.println(driverService.getById(id).isAvailable());
         return driverService.getById(id);
     }
 

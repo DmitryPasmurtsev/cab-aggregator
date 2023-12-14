@@ -38,7 +38,10 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers() {
-        List<DriverResponse> drivers = driverRepository.findAll().stream().map(this::toDTO).toList();
+        List<DriverResponse> drivers = driverRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
         return DriversListResponse.builder()
                 .drivers(drivers)
                 .size(drivers.size())
@@ -47,7 +50,10 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers() {
-        List<DriverResponse> drivers = driverRepository.findAllByIsAvailableIsTrue().stream().map(this::toDTO).toList();
+        List<DriverResponse> drivers = driverRepository.findAllByIsAvailableIsTrue()
+                .stream()
+                .map(this::toDTO)
+                .toList();
         return DriversListResponse.builder()
                 .drivers(drivers)
                 .size(drivers.size())
@@ -56,9 +62,8 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriverResponse getById(Long id) {
-        Optional<Driver> optionalDriver = driverRepository.findById(id);
-        if (optionalDriver.isPresent()) return optionalDriver.map(this::toDTO).get();
-        else throw new NotFoundException("id", "Driver with id={" + id + "} not found");
+        return toDTO(driverRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + id + "} not found")));
     }
 
     public void deleteDriver(Long id) {
@@ -72,7 +77,8 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriverResponse updateDriver(Long id, DriverCreationRequest dto) {
-        Driver driver = checkExistence(id);
+        checkExistence(id);
+        Driver driver = driverRepository.findById(id).get();
         checkConstraints(id, dto);
         driver.setName(dto.getName());
         driver.setSurname(dto.getSurname());
@@ -81,17 +87,24 @@ public class DriverServiceImpl implements DriverService {
     }
 
     private void checkConstraints(Long id, DriverCreationRequest dto) {
-        DriverResponse passengerByPhone = getByPhone(dto.getPhone());
-        if (passengerByPhone != null && !Objects.equals(passengerByPhone.getId(), id))
-            throw new NotCreatedException("phone", "Driver with phone={" + dto.getPhone() + "} is already exists");
+        DriverResponse passengerByPhone = null;
+        try {
+            passengerByPhone = getByPhone(dto.getPhone());
+            if (!Objects.equals(passengerByPhone.getId(), id))
+                throw new NotCreatedException("phone", "Driver with phone={" + dto.getPhone() + "} is already exists");
+        } catch (NotFoundException ex) {
+        }
     }
 
     public DriverResponse getByPhone(String phone) {
-        return toDTO(driverRepository.findPassengerByPhone(phone));
+        return toDTO(driverRepository.findPassengerByPhone(phone)
+                .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + phone + "} not found")));
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page, String field) {
-        Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset).withSort(Sort.by(field))).map(this::toDTO);
+        Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset)
+                        .withSort(Sort.by(field)))
+                .map(this::toDTO);
         return DriversListResponse.builder()
                 .drivers(responsePage.getContent())
                 .size(responsePage.getContent().size())
@@ -102,7 +115,8 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page) {
-        Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset)).map(this::toDTO);
+        Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset))
+                .map(this::toDTO);
         return DriversListResponse.builder()
                 .drivers(responsePage.getContent())
                 .size(responsePage.getContent().size())
@@ -112,7 +126,10 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers(String field) {
-        List<DriverResponse> responseList = driverRepository.findAll(Sort.by(field)).stream().map(this::toDTO).toList();
+        List<DriverResponse> responseList = driverRepository.findAll(Sort.by(field))
+                .stream()
+                .map(this::toDTO)
+                .toList();
         return DriversListResponse.builder()
                 .drivers(responseList)
                 .size(responseList.size())
@@ -121,7 +138,9 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers(Integer offset, Integer page, String field) {
-        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset).withSort(Sort.by(field))).map(this::toDTO);
+        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset)
+                        .withSort(Sort.by(field)))
+                .map(this::toDTO);
         return DriversListResponse.builder()
                 .drivers(responsePage.getContent())
                 .size(responsePage.getContent().size())
@@ -132,7 +151,8 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers(Integer offset, Integer page) {
-        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset)).map(this::toDTO);
+        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset))
+                .map(this::toDTO);
         return DriversListResponse.builder()
                 .drivers(responsePage.getContent())
                 .size(responsePage.getContent().size())
@@ -142,7 +162,10 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers(String field) {
-        List<DriverResponse> responseList = driverRepository.findAllByIsAvailableIsTrue(Sort.by(field)).stream().map(this::toDTO).toList();
+        List<DriverResponse> responseList = driverRepository.findAllByIsAvailableIsTrue(Sort.by(field))
+                .stream()
+                .map(this::toDTO)
+                .toList();
         return DriversListResponse.builder()
                 .drivers(responseList)
                 .size(responseList.size())
@@ -159,15 +182,15 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public boolean changeAvailabilityStatus(Long id) {
-        Driver driver = checkExistence(id);
+        checkExistence(id);
+        Driver driver = driverRepository.findById(id).get();
         driver.setAvailable(!driver.isAvailable());
         driverRepository.save(driver);
         return driver.isAvailable();
     }
 
-    private Driver checkExistence(Long id) {
-        Optional<Driver> optionalDriver = driverRepository.findById(id);
-        if (optionalDriver.isPresent()) return optionalDriver.get();
-        else throw new NotFoundException("id", "Driver with id={" + id + "} not found");
+    private void checkExistence(Long id) {
+        if (!driverRepository.existsById(id))
+            throw new NotFoundException("id", "Driver with id={" + id + "} not found");
     }
 }

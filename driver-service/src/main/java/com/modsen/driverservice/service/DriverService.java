@@ -3,9 +3,9 @@ package com.modsen.driverservice.service;
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
 import com.modsen.driverservice.dto.response.DriverResponse;
 import com.modsen.driverservice.dto.response.DriversListResponse;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public interface DriverService {
     DriversListResponse getAllDrivers();
 

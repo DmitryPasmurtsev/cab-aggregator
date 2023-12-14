@@ -39,7 +39,9 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengersListResponse getList() {
         List<PassengerResponse> passengers = passengerRepository.findAll().stream().map(this::toDTO).toList();
-        return new PassengersListResponse(passengers);
+        return PassengersListResponse.builder()
+                .passengers(passengers)
+                .build();
     }
 
     public PassengerResponse getById(Long id) {
@@ -89,17 +91,39 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field) {
-        Page<PassengerResponse> pageRequest = passengerRepository.findAll(PageRequest.of(page, offset).withSort(Sort.by(field))).map(this::toDTO);
-        return new PassengersListResponse(pageRequest.getContent(), pageRequest.getPageable().getPageNumber(), (int) pageRequest.getTotalElements(), field);
+        Page<PassengerResponse> responsePage = passengerRepository.findAll(PageRequest.of(page, offset)
+                        .withSort(Sort.by(field)))
+                .map(this::toDTO);
+        return PassengersListResponse.builder()
+                .passengers(responsePage.getContent())
+                .size(responsePage.getContent().size())
+                .page(responsePage.getPageable().getPageNumber())
+                .total((int) responsePage.getTotalElements())
+                .sortedByField(field)
+                .build();
     }
 
     public PassengersListResponse getListWithPagination(Integer offset, Integer page) {
-        Page<PassengerResponse> pageRequest = passengerRepository.findAll(PageRequest.of(page, offset)).map(this::toDTO);
-        return new PassengersListResponse(pageRequest.getContent(), pageRequest.getPageable().getPageNumber(), (int) pageRequest.getTotalElements());
+        Page<PassengerResponse> responsePage = passengerRepository.findAll(PageRequest.of(page, offset))
+                .map(this::toDTO);
+        return PassengersListResponse.builder()
+                .passengers(responsePage.getContent())
+                .size(responsePage.getContent().size())
+                .page(responsePage.getPageable().getPageNumber())
+                .total((int) responsePage.getTotalElements())
+                .build();
     }
 
     public PassengersListResponse getListWithSort(String field) {
-        return new PassengersListResponse(passengerRepository.findAll(Sort.by(field)).stream().map(this::toDTO).toList(), field);
+        List<PassengerResponse> responseList = passengerRepository.findAll(Sort.by(field))
+                .stream()
+                .map(this::toDTO)
+                .toList();
+        return PassengersListResponse.builder()
+                .passengers(responseList)
+                .size(responseList.size())
+                .sortedByField(field)
+                .build();
     }
 
     public Double getRatingById(Long id) {

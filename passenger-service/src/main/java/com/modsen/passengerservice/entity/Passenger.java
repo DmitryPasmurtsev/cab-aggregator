@@ -2,12 +2,14 @@ package com.modsen.passengerservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Table(name = "passengers")
 @Entity
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Passenger {
     @Id

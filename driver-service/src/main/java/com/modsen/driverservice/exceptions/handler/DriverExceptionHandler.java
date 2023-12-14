@@ -41,21 +41,13 @@ public class DriverExceptionHandler {
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<Map<String, String>> responseList = new ArrayList<>();
-        Map<String, String> responseMap = new HashMap<>();
-        ex.getFieldErrors().forEach(err -> {
-            responseMap.put(FIRST_KEY, err.getField());
-            responseMap.put(SECOND_KEY, err.getDefaultMessage());
-            responseList.add(new HashMap<>(responseMap));
-        });
+        ex.getFieldErrors().forEach(err -> responseList.add(Map.of(FIRST_KEY, err.getField(), SECOND_KEY, err.getDefaultMessage())));
         ExceptionResponse response = new ExceptionResponse(responseList);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     private ExceptionResponse createResponse(String firstValue, String secondValue) {
-        Map<String, String> error = new HashMap<>();
-        error.put(FIRST_KEY, firstValue);
-        error.put(SECOND_KEY, secondValue);
-        List<Map<String, String>> list = Collections.singletonList(error);
+        List<Map<String, String>> list = Collections.singletonList(Map.of(FIRST_KEY, firstValue, SECOND_KEY, secondValue));
         return new ExceptionResponse(list);
     }
 }

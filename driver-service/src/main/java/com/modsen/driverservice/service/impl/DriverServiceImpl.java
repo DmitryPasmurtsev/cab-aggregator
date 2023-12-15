@@ -102,7 +102,7 @@ public class DriverServiceImpl implements DriverService {
         return toDTO(getEntityByPhone(phone));
     }
 
-    public Driver getEntityByPhone(String phone) {
+    private Driver getEntityByPhone(String phone) {
         return driverRepository.findPassengerByPhone(phone)
                 .orElseThrow(() -> new NotFoundException("phone", "Driver with phone={" + phone + "} not found"));
     }

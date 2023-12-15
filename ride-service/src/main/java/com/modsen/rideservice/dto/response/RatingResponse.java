@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class RatingResponse {
+    Long userId;
     Double rating;
-    Long driverId;
 }

@@ -1,20 +1,20 @@
 package com.modsen.rideservice.service.impl;
 
-import com.modsen.rideservice.dto.request.DriverFinishRequest;
-import com.modsen.rideservice.dto.request.PassengerFinishRequest;
-import com.modsen.rideservice.dto.request.RideCreationRequest;
-import com.modsen.rideservice.dto.request.UserIdRequest;
+import com.modsen.rideservice.dto.request.*;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
 import com.modsen.rideservice.entity.Ride;
+import com.modsen.rideservice.enums.Status;
 import com.modsen.rideservice.repository.RideRepository;
 import com.modsen.rideservice.service.RideService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Random;
 
@@ -40,8 +40,20 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public void addRide(RideCreationRequest dto) {
+    public RideResponse addRide(RideCreationRequest dto) {
+        Ride ride = toModel(dto);
+        ride.setCost(Math.round(new Random().nextDouble(5, 20)*100)/100.0);
+        ride.setStatus(Status.NOT_ACCEPTED);
+        RideResponse response = toDTO(ride);
+        response.setDriverId(getAvailableDriverId(null));
+        ride.setStatus(Status.ACCEPTED);
+        return response;
+    }
 
+    private Long getAvailableDriverId(DriverRejectRequest dto) {
+        //здесь будет отправка запроса на сервис водителей для получения свободного
+        //временно реализовано рандомное генерирование id водителя
+        return new Random().nextLong(1, 10);
     }
 
     @Override
@@ -60,22 +72,22 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public RidesListResponse getAllRidesForPassenger(UserIdRequest dto) {
+    public RidesListResponse getAllRidesForPassenger(Long userId) {
         return null;
     }
 
     @Override
-    public RidesListResponse getAllRidesForPassenger(UserIdRequest dto, Integer offset, Integer page, String field) {
+    public RidesListResponse getAllRidesForPassenger(Long id, Integer offset, Integer page, String field) {
         return null;
     }
 
     @Override
-    public RidesListResponse getAllRidesForPassenger(UserIdRequest dto, Integer offset, Integer page) {
+    public RidesListResponse getAllRidesForPassenger(Long id, Integer offset, Integer page) {
         return null;
     }
 
     @Override
-    public RidesListResponse getAllRidesForPassenger(UserIdRequest dto, String field) {
+    public RidesListResponse getAllRidesForPassenger(Long id, String field) {
         return null;
     }
 

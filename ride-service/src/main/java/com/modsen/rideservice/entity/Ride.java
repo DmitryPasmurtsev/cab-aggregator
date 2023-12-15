@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Table(name = "rides")
 @Entity
 @Data
@@ -17,6 +19,8 @@ public class Ride {
     Long id;
     @Column(name = "pick_up")
     String pickUp;
+    @Column(name = "date_of_ride")
+    LocalDate date;
     @Column(name = "destination")
     String destination;
     @Column(name = "passenger_id")

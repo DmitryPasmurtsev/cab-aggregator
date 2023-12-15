@@ -17,5 +17,5 @@ public class DriverFinishRequest {
     @NotBlank(message = "Ride id should not be empty")
     @Min(value = 1, message = "Minimum rating = 1")
     @Max(value = 5, message = "Maximum rating = 5")
-    int ratingToPassenger;
+    Integer ratingToPassenger;
 }

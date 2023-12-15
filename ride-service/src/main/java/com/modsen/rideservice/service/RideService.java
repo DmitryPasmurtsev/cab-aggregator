@@ -1,9 +1,6 @@
 package com.modsen.rideservice.service;
 
-import com.modsen.rideservice.dto.request.DriverFinishRequest;
-import com.modsen.rideservice.dto.request.PassengerFinishRequest;
-import com.modsen.rideservice.dto.request.RideCreationRequest;
-import com.modsen.rideservice.dto.request.UserIdRequest;
+import com.modsen.rideservice.dto.request.*;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
 import org.springframework.stereotype.Component;
@@ -15,7 +12,7 @@ public interface RideService {
 
     void deleteRide(Long id);
 
-    void addRide(RideCreationRequest dto);
+    RideResponse addRide(RideCreationRequest dto);
 
     void changeStatus(Long id, UserIdRequest dto);
 
@@ -23,11 +20,17 @@ public interface RideService {
 
     void finishRide(Long id, PassengerFinishRequest dto);
 
-    RidesListResponse getAllRidesForPassenger(UserIdRequest dto);
+    void startRide(Long id, UserIdRequest dto);
 
-    RidesListResponse getAllRidesForPassenger(UserIdRequest dto, Integer offset, Integer page, String field);
+    void rejectRide(Long id, UserIdRequest dto);
 
-    RidesListResponse getAllRidesForPassenger(UserIdRequest dto, Integer offset, Integer page);
+    void rejectRide(Long id, DriverRejectRequest dto);
 
-    RidesListResponse getAllRidesForPassenger(UserIdRequest dto, String field);
+    RidesListResponse getAllRidesForPassenger(Long id);
+
+    RidesListResponse getAllRidesForPassenger(Long id, Integer offset, Integer page, String field);
+
+    RidesListResponse getAllRidesForPassenger(Long id, Integer offset, Integer page);
+
+    RidesListResponse getAllRidesForPassenger(Long id, String field);
 }

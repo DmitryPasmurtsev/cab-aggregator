@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -27,7 +26,6 @@ public class DriverServiceImpl implements DriverService {
     private final ModelMapper modelMapper;
 
     private DriverResponse toDTO(Driver driver) {
-        if (driver == null) return null;
         DriverResponse dto = modelMapper.map(driver, DriverResponse.class);
         dto.setRating(getRatingById(dto.getId()));
         return dto;
@@ -62,8 +60,12 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriverResponse getById(Long id) {
-        return toDTO(driverRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + id + "} not found")));
+        return toDTO(getEntityById(id));
+    }
+
+    private Driver getEntityById(Long id) {
+        return driverRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + id + "} not found"));
     }
 
     public void deleteDriver(Long id) {
@@ -78,7 +80,7 @@ public class DriverServiceImpl implements DriverService {
 
     public DriverResponse updateDriver(Long id, DriverCreationRequest dto) {
         checkExistence(id);
-        Driver driver = driverRepository.findById(id).get();
+        Driver driver = getEntityById(id);
         checkConstraints(id, dto);
         driver.setName(dto.getName());
         driver.setSurname(dto.getSurname());
@@ -97,8 +99,12 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriverResponse getByPhone(String phone) {
-        return toDTO(driverRepository.findPassengerByPhone(phone)
-                .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + phone + "} not found")));
+        return toDTO(getEntityByPhone(phone));
+    }
+
+    public Driver getEntityByPhone(String phone) {
+        return driverRepository.findPassengerByPhone(phone)
+                .orElseThrow(() -> new NotFoundException("phone", "Driver with phone={" + phone + "} not found"));
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page, String field) {
@@ -182,8 +188,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public boolean changeAvailabilityStatus(Long id) {
-        checkExistence(id);
-        Driver driver = driverRepository.findById(id).get();
+        Driver driver = getEntityById(id);
         driver.setAvailable(!driver.isAvailable());
         driverRepository.save(driver);
         return driver.isAvailable();

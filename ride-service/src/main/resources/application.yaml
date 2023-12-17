@@ -3,12 +3,12 @@ server:
 
 spring:
   liquibase:
-    enabled: true
+    enabled: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/rides
+    url: jdbc:postgresql://localhost:5432/rides_service
     username: postgres
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: true

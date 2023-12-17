@@ -1,14 +1,10 @@
 package com.modsen.rideservice.service.impl;
 
-import com.modsen.rideservice.dto.request.*;
 import com.modsen.rideservice.dto.response.RatingResponse;
-import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.entity.Rating;
-import com.modsen.rideservice.entity.Ride;
 import com.modsen.rideservice.repository.RatingRepository;
 import com.modsen.rideservice.service.RatingService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,31 +14,28 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class RatingServiceImpl implements RatingService {
     private final RatingRepository ratingRepository;
-    private final ModelMapper modelMapper;
-
-    private RideResponse toDTO(Ride ride) {
-        if (ride == null) return null;
-        return modelMapper.map(ride, RideResponse.class);
-    }
-
-    private Ride toModel(RideCreationRequest dto) {
-        return modelMapper.map(dto, Ride.class);
-    }
 
     public RatingResponse getRatingForPassenger(Long id) {
-        List<Rating> ratings = ratingRepository.findAllByPassengerIdAndPassengerRatingIsNotNull(id);
-        return new RatingResponse(id, calculateRating(ratings));
+        List<Rating> ratings = ratingRepository.findAllByRidePassengerIdAndPassengerRatingIsNotNull(id);
+        if(ratings.isEmpty()) return new RatingResponse(id, null);
+        List<Integer> passengerRatings = ratings.stream()
+                .map(Rating::getPassengerRating)
+                .toList();
+        return new RatingResponse(id, calculateRating(passengerRatings));
     }
 
     public RatingResponse getRatingForDriver(Long id) {
-        List<Rating> ratings = ratingRepository.findAllByDriverIdAndDriverRatingIsNotNull(id);
-        return new RatingResponse(id, calculateRating(ratings));
+        List<Rating> ratings = ratingRepository.findAllByRideDriverIdAndDriverRatingIsNotNull(id);
+        if(ratings.isEmpty()) return new RatingResponse(id, null);
+        List<Integer> driverRatings = ratings.stream()
+                .map(Rating::getDriverRating)
+                .toList();
+        return new RatingResponse(id, calculateRating(driverRatings));
     }
 
-    private Double calculateRating(List<Rating> ratings) {
-        if(ratings.isEmpty()) return null;
+    private Double calculateRating(List<Integer> ratings) {
         AtomicReference<Integer> totalRating = new AtomicReference<>(0);
-        ratings.forEach(r -> totalRating.updateAndGet(v -> v + r.getPassengerRating()));
+        ratings.forEach(r -> totalRating.updateAndGet(v -> v + r));
         return Math.round(totalRating.get()*100.0/ratings.size())/100.0;
     }
 }

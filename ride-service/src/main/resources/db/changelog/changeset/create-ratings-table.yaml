@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-ratings
+      author: DmitryPasmurtsev
+      changes:
+        - createTable:
+            tableName: ratings
+            columns:
+              - column:
+                  name: ride_id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: passenger_rating
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: driver_rating
+                  type: int
+                  constraints:
+                    nullable: false
+              - addForeignKeyConstraint:
+                  baseTableName: ratings
+                  baseColumnNames: ride_id
+                  constraintName: fk_ride_rating
+                  referencedTableName: rides
+                  referencedColumnNames: id
+                  onUpdate: CASCADE
+                  onDelete: CASCADE

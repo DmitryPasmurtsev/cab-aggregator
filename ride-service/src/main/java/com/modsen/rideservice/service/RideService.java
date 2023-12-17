@@ -14,17 +14,15 @@ public interface RideService {
 
     RideResponse addRide(RideCreationRequest dto);
 
-    void changeStatus(Long id, UserIdRequest dto);
-
     void finishRide(Long id, DriverFinishRequest dto);
 
     void finishRide(Long id, PassengerFinishRequest dto);
 
     void startRide(Long id, UserIdRequest dto);
 
-    void rejectRide(Long id, UserIdRequest dto);
+    void passengerRejectRide(Long id, UserIdRequest dto);
 
-    void rejectRide(Long id, DriverRejectRequest dto);
+    void driverRejectRide(Long id, UserIdRequest dto);
 
     RidesListResponse getAllRidesForPassenger(Long id);
 

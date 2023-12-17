@@ -2,16 +2,18 @@ package com.modsen.rideservice.entity;
 
 import com.modsen.rideservice.enums.Status;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 @Table(name = "rides")
 @Entity
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Ride {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +22,7 @@ public class Ride {
     @Column(name = "pick_up")
     String pickUp;
     @Column(name = "date_of_ride")
-    LocalDate date;
+    Date date;
     @Column(name = "destination")
     String destination;
     @Column(name = "passenger_id")

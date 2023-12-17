@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Контроллер для работы с рейтингами")
 public class RatingController {
+
     private final RatingService ratingService;
 
     @GetMapping("/passenger/{id}")
@@ -28,6 +29,6 @@ public class RatingController {
             summary = "Получение рейтинга для водителя"
     )
     public RatingResponse getRatingForDriver(@PathVariable Long id) {
-        return ratingService.getRatingForPassenger(id);
+        return ratingService.getRatingForDriver(id);
     }
 }

@@ -4,7 +4,7 @@ databaseChangeLog:
       author: DmitryPasmurtsev
       changes:
         - createTable:
-            tableName: drivers
+            tableName: rides
             columns:
               - column:
                   name: id
@@ -12,27 +12,36 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    nullable: false
               - column:
-                  name: name
-                  type: varchar(20)
+                  name: pick_up
+                  type: varchar(255)
                   constraints:
                     nullable: false
               - column:
-                  name: surname
-                  type: varchar(30)
+                  name: date_of_ride
+                  type: date
                   constraints:
                     nullable: false
               - column:
-                  name: phone
-                  type: varchar(11)
+                  name: destination
+                  type: varchar(255)
                   constraints:
                     nullable: false
-                    unique: true
               - column:
-                  name: is_available
-                  type: boolean
-                  defaultOnNull: true
-                  defaultValueBoolean: false
+                  name: passenger_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: driver_id
+                  type: bigint
+              - column:
+                  name: cost
+                  type: double
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(255)
                   constraints:
                     nullable: false

@@ -1,9 +1,7 @@
 package com.modsen.rideservice.exceptions.handler;
 
-import com.modsen.driverservice.exceptions.CustomException;
-import com.modsen.driverservice.exceptions.NotCreatedException;
-import com.modsen.driverservice.exceptions.NotFoundException;
-import com.modsen.driverservice.exceptions.response.ExceptionResponse;
+import com.modsen.rideservice.exceptions.*;
+import com.modsen.rideservice.exceptions.response.ExceptionResponse;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.*;
 
 @ControllerAdvice
-public class DriverExceptionHandler {
+public class RideExceptionHandler {
     static final String FIRST_KEY = "cause";
     static final String SECOND_KEY = "message";
 
@@ -23,8 +21,8 @@ public class DriverExceptionHandler {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<ExceptionResponse> handleNotCreatedException(CustomException ex) {
+    @ExceptionHandler(value = {NotCreatedException.class, WrongStatusException.class, NoAccessException.class})
+    public ResponseEntity<ExceptionResponse> handleNotCreatedAndWrongStatusException(CustomException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,61 +39,20 @@ public class RideController {
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
-            summary = "Получение водителя по id"
+            summary = "Получение поездки по id"
     )
-    public DriverResponse getDriverById(@PathVariable Long id) {
-        System.err.println(rideService.getById(id).isAvailable());
+    public RideResponse getRideById(@PathVariable Long id) {
         return rideService.getById(id);
     }
 
-    @PostMapping
-    @ResponseStatus(value = HttpStatus.CREATED)
-    @Operation(
-            summary = "Добавление водителя"
-    )
-    public RideResponse addDriver(@RequestBody @Valid DriverCreationRequest driverDTO) {
-        return rideService.addDriver(driverDTO);
-    }
-
-    @PatchMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
-    @Operation(
-            summary = "Редактирование информации о водителе"
-    )
-    public DriverResponse updateDriver(@PathVariable Long id, @Valid @RequestBody DriverCreationRequest driverDTO) {
-        return rideService.updateDriver(id, driverDTO);
-    }
-
     @DeleteMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.OK)
     @Operation(
-            summary = "Удаление водителя"
+            summary = "Удаление поездки"
     )
-    public StringResponse deleteDriver(@PathVariable Long id) {
-        rideService.deleteDriver(id);
-        return new StringResponse("Driver with id={" + id + "} has been removed");
-    }
-
-
-    @GetMapping("/{id}/rating")
-    @Operation(
-            summary = "Получение рейтинга водителя"
-    )
-    @ResponseStatus(value = HttpStatus.OK)
-    //этот метод в будущем стоит перенести в микросервис рейтингов
-    public RatingResponse getDriverRating(@PathVariable Long id) {
-        return new RatingResponse(rideService.getRatingById(id), id);
-    }
-
-    @PatchMapping("/{id}/available")
-    @ResponseStatus(value = HttpStatus.OK)
-    @Operation(
-            summary = "Изменение статуса"
-    )
-    public StringResponse changeAvailability(@PathVariable Long id) {
-        return new StringResponse("Availability status of driver with id={" + id + "} has been changed. Now is_available={" + rideService.changeAvailabilityStatus(id) + "}");
+    public StringResponse deleteRide(@PathVariable Long id) {
+        rideService.deleteRide(id);
+        return new StringResponse("Ride with id={" + id + "} has been removed");
     }
 
     @PostMapping
@@ -108,8 +68,8 @@ public class RideController {
     @Operation(
             summary = "Отклонение поездки водителем"
     )
-    public StringResponse rejectRideForDriver(@PathVariable Long id, @Valid DriverRejectRequest dto) {
-        rideService.rejectRide(id, dto);
+    public StringResponse rejectRideForDriver(@PathVariable Long id,@RequestBody @Valid UserIdRequest dto) {
+        rideService.driverRejectRide(id, dto);
         return new StringResponse("Ride with id={" + id + "} has been successfully rejected");
     }
 
@@ -117,8 +77,8 @@ public class RideController {
     @Operation(
             summary = "Отклонение поездки пассажиром"
     )
-    public StringResponse rejectRideForPassenger(@PathVariable Long id, @Valid UserIdRequest dto) {
-        rideService.rejectRide(id, dto);
+    public StringResponse rejectRideForPassenger(@PathVariable Long id,@RequestBody @Valid UserIdRequest dto) {
+        rideService.passengerRejectRide(id, dto);
         return new StringResponse("Ride with id={" + id + "} has been successfully rejected");
     }
 
@@ -126,7 +86,7 @@ public class RideController {
     @Operation(
             summary = "Поездка начата"
     )
-    public StringResponse startRideForDriver(@PathVariable Long id, @Valid UserIdRequest dto) {
+    public StringResponse startRideForDriver(@PathVariable Long id,@RequestBody @Valid UserIdRequest dto) {
         rideService.startRide(id, dto);
         return new StringResponse("Ride with id={" + id + "} has been started");
     }
@@ -135,7 +95,7 @@ public class RideController {
     @Operation(
             summary = "Завершение поездки для пассажира"
     )
-    public StringResponse finishRideForPassenger(@PathVariable Long id, @Valid PassengerFinishRequest dto) {
+    public StringResponse finishRideForPassenger(@PathVariable Long id,@RequestBody @Valid PassengerFinishRequest dto) {
         rideService.finishRide(id, dto);
         return new StringResponse("Ride with id={" + id + "} has been successfully finished");
     }
@@ -144,7 +104,7 @@ public class RideController {
     @Operation(
             summary = "Завершение поездки для водителя"
     )
-    public StringResponse finishRideForDriver(@PathVariable Long id, @Valid DriverFinishRequest dto) {
+    public StringResponse finishRideForDriver(@PathVariable Long id,@RequestBody @Valid DriverFinishRequest dto) {
         rideService.finishRide(id, dto);
         return new StringResponse("Ride with id={" + id + "} has been successfully finished");
     }

@@ -29,8 +29,10 @@ public class Ride {
     Long passengerId;
     @Column(name = "driver_id")
     Long driverId;
-    @Column(name = "cost")
-    Double cost;
+    @Column(name = "initial_cost")
+    Double initialCost;
+    @Column(name = "final_cost")
+    Double finalCost;
     @Column(name = "status")
     Status status;
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL)

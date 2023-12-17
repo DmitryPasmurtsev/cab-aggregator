@@ -10,7 +10,9 @@ import com.modsen.rideservice.exceptions.NoAccessException;
 import com.modsen.rideservice.exceptions.NotCreatedException;
 import com.modsen.rideservice.exceptions.NotFoundException;
 import com.modsen.rideservice.exceptions.WrongStatusException;
+import com.modsen.rideservice.repository.PromoCodeRepository;
 import com.modsen.rideservice.repository.RideRepository;
+import com.modsen.rideservice.service.PromoCodeService;
 import com.modsen.rideservice.service.RideService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -27,11 +29,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
+    private final PromoCodeService promoCodeService;
     private final ModelMapper modelMapper;
 
 
     private RideResponse toDTO(Ride ride) {
-        if (ride == null) return null;
         return modelMapper.map(ride, RideResponse.class);
     }
 
@@ -47,11 +49,21 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse addRide(RideCreationRequest dto) {
         Ride ride = toModel(dto);
-        ride.setCost(Math.round(new Random().nextDouble(5, 20)*100)/100.0);
+        ride.setInitialCost(Math.round(new Random().nextDouble(5, 20)*100)/100.0);
+        setFinalCost(ride, dto.getPromoCode());
+        ride.setDate(new Date());
+        System.err.println(ride.getDate());
         ride.setStatus(Status.NOT_ACCEPTED);
         ride.setDriverId(getAvailableDriverId(null));
         ride.setStatus(Status.ACCEPTED);
         return toDTO(rideRepository.save(ride));
+    }
+
+    private void setFinalCost(Ride ride, String promoCodeName) {
+        if(!promoCodeName.isEmpty()) {
+            Double coefficient = promoCodeService.getById(promoCodeName).getCoefficient();
+            ride.setFinalCost(Math.round(ride.getInitialCost()*coefficient*100.0)/100.0);
+        } else ride.setFinalCost(ride.getInitialCost());
     }
 
     private Ride getEntityById(Long id) {

@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -16,9 +17,10 @@ public class RideResponse {
     Long id;
     String pickUp;
     String destination;
-    LocalDate date;
+    Date date;
     Status status;
-    Double cost;
+    Double initialCost;
+    Double finalCost;
     Long passengerId;
     Long driverId;
 }

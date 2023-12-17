@@ -15,4 +15,5 @@ public class RideCreationRequest {
     String pickUp;
     @NotBlank(message = "Destination address should not be empty")
     String destination;
+    String promoCode;
 }

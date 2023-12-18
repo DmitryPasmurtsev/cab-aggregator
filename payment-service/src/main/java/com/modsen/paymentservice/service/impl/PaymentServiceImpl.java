@@ -14,6 +14,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.CustomerUpdateParams;
 import com.stripe.param.PaymentIntentConfirmParams;
 import com.stripe.param.PaymentSourceCollectionCreateParams;
 import lombok.RequiredArgsConstructor;
@@ -131,6 +132,8 @@ public class PaymentServiceImpl implements PaymentService {
         Stripe.apiKey = SECRET_KEY;
         User user = getEntityById(request.getPassengerId());
         String customerId = user.getCustomerId();
+        checkBalance(customerId, Math.round(request.getAmount()*100));
+        updateBalance(customerId, Math.round(request.getAmount() * 100));
         Map<String, Object> paymentIntentParams = new HashMap<>();
         paymentIntentParams.put("amount", request.getAmount() * 100);
         paymentIntentParams.put("currency", "byn");
@@ -148,14 +151,23 @@ public class PaymentServiceImpl implements PaymentService {
                 .currency(intent.getCurrency()).build();
     }
 
-    public void createCard(CardRequest dto) throws StripeException {
+    private void updateBalance(String customerId,long amount) throws StripeException {
+        Customer customer=Customer.retrieve(customerId);
+        CustomerUpdateParams params =
+                CustomerUpdateParams.builder()
+                        .setBalance(customer.getBalance()-amount)
+                        .build();
         Stripe.apiKey = SECRET_KEY;
-        User user = getEntityById(dto.getPassengerId());
-        Customer customer = Customer.retrieve(user.getCustomerId());
-        PaymentSourceCollectionCreateParams params =
-                PaymentSourceCollectionCreateParams.builder().setSource("tok_visa").build();
-        //PaymentSource paymentSource = customer.getPaymentSources().create(params);
+        customer.update(params);
     }
+
+    private void checkBalance(String customerId,long amount) throws StripeException {
+        Customer customer = Customer.retrieve(customerId);
+        Long balance = customer.getBalance();
+        if (balance < amount)
+            throw new NotCreatedException("balance", "Not enough money in the account");
+    }
+
 
     private User getEntityById(Long id) {
         Optional<User> user = customerRepository.findById(id);

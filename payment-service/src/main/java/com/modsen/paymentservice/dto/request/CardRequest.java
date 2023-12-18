@@ -12,8 +12,6 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardRequest {
-    @NotNull(message = "Passenger id can't be empty")
-    Long passengerId;
     @NotBlank(message = "Card number can't be empty")
     String cardNumber;
     @NotNull(message = "Expiration month can't be empty")

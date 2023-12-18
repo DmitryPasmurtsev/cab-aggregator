@@ -23,6 +23,7 @@ public class CustomerRequest {
     @Min(value = 1, message = "Min value is 1")
     long passengerId;
     @NotNull(message = "Balance can't be empty")
-    @Range(min = 100, max = 1000000,message = "Balance should be between 100 and 1000000")
+    @DecimalMin(value = "0.01", message = "Balance minimum is 0.01")
+    @DecimalMax(value = "5000", message = "Balance maximum is 5000")
     Double balance;
 }

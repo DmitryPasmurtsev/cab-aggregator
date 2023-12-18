@@ -1,5 +1,8 @@
 package com.modsen.paymentservice.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,9 +15,10 @@ import org.hibernate.validator.constraints.Range;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomerChargeRequest {
     @NotNull(message = "Amount is mandatory")
-    @Range(min = 100, max = 1000000,message = "Amount should be between 100 and 1000000")
-    long amount;
+    @DecimalMin(value = "0.01", message = "Balance minimum is 0.01")
+    @DecimalMax(value = "5000", message = "Balance maximum is 5000")
+    Double amount;
     @NotNull(message = "Passenger is mandatory")
-    @Range(min = 1, message = "Min value is 1")
+    @Min(value = 1, message = "Id min value is 1")
     long passengerId;
 }

@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/v1/drivers")
 @RequiredArgsConstructor
-@Tag(name = "Контроллер для работы с водителями")
+@Tag(name = "Controller for working with drivers")
 public class DriverController {
 
     private final DriverService driverService;
 
     @GetMapping
     @Operation(
-            summary = "Получение всех водителей"
+            summary = "Getting all drivers"
     )
     public DriversListResponse getAllDrivers(
             @RequestParam(required = false) Integer offset,
@@ -39,7 +39,7 @@ public class DriverController {
 
     @GetMapping("/available")
     @Operation(
-            summary = "Получение доступных водителей"
+            summary = "Getting available drivers"
     )
     public DriversListResponse getAvailableDrivers(
             @RequestParam(required = false) Integer offset,
@@ -55,7 +55,7 @@ public class DriverController {
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Получение водителя по id"
+            summary = "Getting driver by id"
     )
     public DriverResponse getDriverById(@PathVariable Long id) {
         return driverService.getById(id);
@@ -64,7 +64,7 @@ public class DriverController {
     @PostMapping
     @ResponseStatus(value = HttpStatus.CREATED)
     @Operation(
-            summary = "Добавление водителя"
+            summary = "Adding a driver"
     )
     public DriverResponse addDriver(@RequestBody @Valid DriverCreationRequest driverDTO) {
         return driverService.addDriver(driverDTO);
@@ -72,7 +72,7 @@ public class DriverController {
 
     @PatchMapping("/{id}")
     @Operation(
-            summary = "Редактирование информации о водителе"
+            summary = "Editing driver information"
     )
     public DriverResponse updateDriver(@PathVariable Long id, @Valid @RequestBody DriverCreationRequest driverDTO) {
         return driverService.updateDriver(id, driverDTO);
@@ -81,7 +81,7 @@ public class DriverController {
     @DeleteMapping("/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
-            summary = "Удаление водителя"
+            summary = "Removing a driver"
     )
     public StringResponse deleteDriver(@PathVariable Long id) {
         driverService.deleteDriver(id);
@@ -91,7 +91,7 @@ public class DriverController {
 
     @GetMapping("/{id}/rating")
     @Operation(
-            summary = "Получение рейтинга водителя"
+            summary = "Getting a driver rating"
     )
     //этот метод в будущем стоит перенести в микросервис рейтингов
     public RatingResponse getDriverRating(@PathVariable Long id) {
@@ -100,7 +100,7 @@ public class DriverController {
 
     @PatchMapping("/{id}/available")
     @Operation(
-            summary = "Изменение статуса"
+            summary = "Change of status"
     )
     public StringResponse changeAvailability(@PathVariable Long id) {
         return new StringResponse("Availability status of driver with id={" + id + "} has been changed. Now is_available={" + driverService.changeAvailabilityStatus(id) + "}");

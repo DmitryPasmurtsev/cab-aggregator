@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -89,22 +90,13 @@ public class DriverServiceImpl implements DriverService {
     }
 
     private void checkConstraints(Long id, DriverCreationRequest dto) {
-        DriverResponse passengerByPhone = null;
-        try {
-            passengerByPhone = getByPhone(dto.getPhone());
-            if (!Objects.equals(passengerByPhone.getId(), id))
-                throw new NotCreatedException("phone", "Driver with phone={" + dto.getPhone() + "} is already exists");
-        } catch (NotFoundException ex) {
-        }
+        Optional<Driver> passengerByPhone = getEntityByPhone(dto.getPhone());
+        if (passengerByPhone.isPresent() && !Objects.equals(passengerByPhone.get().getId(), id))
+            throw new NotCreatedException("phone", "Driver with phone={" + dto.getPhone() + "} is already exists");
     }
 
-    public DriverResponse getByPhone(String phone) {
-        return toDTO(getEntityByPhone(phone));
-    }
-
-    private Driver getEntityByPhone(String phone) {
-        return driverRepository.findPassengerByPhone(phone)
-                .orElseThrow(() -> new NotFoundException("phone", "Driver with phone={" + phone + "} not found"));
+    private Optional<Driver> getEntityByPhone(String phone) {
+        return driverRepository.findPassengerByPhone(phone);
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page, String field) {

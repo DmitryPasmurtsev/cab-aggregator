@@ -41,6 +41,8 @@ public class PassengerServiceImpl implements PassengerService {
         List<PassengerResponse> passengers = passengerRepository.findAll().stream().map(this::toDTO).toList();
         return PassengersListResponse.builder()
                 .passengers(passengers)
+                .size(passengers.size())
+                .total(passengers.size())
                 .build();
     }
 

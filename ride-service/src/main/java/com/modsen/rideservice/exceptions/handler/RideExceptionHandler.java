@@ -1,6 +1,10 @@
 package com.modsen.rideservice.exceptions.handler;
 
-import com.modsen.rideservice.exceptions.*;
+import com.modsen.rideservice.exceptions.CustomException;
+import com.modsen.rideservice.exceptions.NoAccessException;
+import com.modsen.rideservice.exceptions.NotCreatedException;
+import com.modsen.rideservice.exceptions.NotFoundException;
+import com.modsen.rideservice.exceptions.WrongStatusException;
 import com.modsen.rideservice.exceptions.response.ExceptionResponse;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
@@ -9,7 +13,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @ControllerAdvice
 public class RideExceptionHandler {
@@ -17,12 +23,12 @@ public class RideExceptionHandler {
     static final String SECOND_KEY = "message";
 
     @ExceptionHandler(value = {NotFoundException.class})
-    public ResponseEntity<ExceptionResponse> handleNotFoundException(CustomException ex) {
+    public ResponseEntity<ExceptionResponse> handleNotFoundException(NotFoundException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = {NotCreatedException.class, WrongStatusException.class, NoAccessException.class})
-    public ResponseEntity<ExceptionResponse> handleNotCreatedAndWrongStatusException(CustomException ex) {
+    public ResponseEntity<ExceptionResponse> handleNotCreateWrongStatusNoAccessException(CustomException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
@@ -38,22 +44,15 @@ public class RideExceptionHandler {
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        List<Map<String, String>> responseList = new ArrayList<>();
-        Map<String, String> responseMap = new HashMap<>();
-        ex.getFieldErrors().forEach(err -> {
-            responseMap.put(FIRST_KEY, err.getField());
-            responseMap.put(SECOND_KEY, err.getDefaultMessage());
-            responseList.add(new HashMap<>(responseMap));
-        });
+        List<Map<String, String>> responseList = ex.getFieldErrors().stream()
+                .map(err -> Map.of(FIRST_KEY, err.getField(), SECOND_KEY, err.getDefaultMessage()))
+                .toList();
         ExceptionResponse response = new ExceptionResponse(responseList);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     private ExceptionResponse createResponse(String firstValue, String secondValue) {
-        Map<String, String> error = new HashMap<>();
-        error.put(FIRST_KEY, firstValue);
-        error.put(SECOND_KEY, secondValue);
-        List<Map<String, String>> list = Collections.singletonList(error);
+        List<Map<String, String>> list = Collections.singletonList(Map.of(FIRST_KEY, firstValue, SECOND_KEY, secondValue));
         return new ExceptionResponse(list);
     }
 }

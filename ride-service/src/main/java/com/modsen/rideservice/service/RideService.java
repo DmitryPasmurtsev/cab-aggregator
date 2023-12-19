@@ -1,11 +1,12 @@
 package com.modsen.rideservice.service;
 
-import com.modsen.rideservice.dto.request.*;
+import com.modsen.rideservice.dto.request.DriverFinishRequest;
+import com.modsen.rideservice.dto.request.PassengerFinishRequest;
+import com.modsen.rideservice.dto.request.RideCreationRequest;
+import com.modsen.rideservice.dto.request.UserIdRequest;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
-import org.springframework.stereotype.Component;
 
-@Component
 public interface RideService {
 
     RideResponse getById(Long id);

@@ -40,8 +40,6 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeDTO create(PromoCodeDTO dto) {
         checkConstraints(dto);
         PromoCode promoCode = toModel(dto);
-        System.err.println(promoCode.getName());
-        System.err.println(promoCode.getCoefficient());
         promoCodeRepository.save(promoCode);
         return dto;
     }
@@ -113,7 +111,6 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeDTO getById(String name) {
         return toDTO(getEntityById(name));
     }
-
 
     private void checkExistence(String name) {
         if (!promoCodeRepository.existsById(name)) throw new NotFoundException("name", "Promo code " + name+ " not found");

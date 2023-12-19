@@ -13,8 +13,6 @@ import java.util.List;
 @Repository
 public interface RideRepository extends JpaRepository<Ride, Long> {
 
-    List<Ride> findAllByStatusIs(Status status);
-
     List<Ride> findAllByPassengerId(Long id);
 
     List<Ride> findAllByPassengerId(Long id, Sort sort);

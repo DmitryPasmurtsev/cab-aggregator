@@ -3,8 +3,10 @@ package com.modsen.passengerservice.repository;
 import com.modsen.passengerservice.entity.Passenger;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PassengerRepository extends JpaRepository<Passenger, Long> {
-    Passenger findPassengerByEmail(String email);
+import java.util.Optional;
 
-    Passenger findPassengerByPhone(String phone);
+public interface PassengerRepository extends JpaRepository<Passenger, Long> {
+    Optional<Passenger> findPassengerByEmail(String email);
+
+    Optional<Passenger> findPassengerByPhone(String phone);
 }

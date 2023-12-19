@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,7 +28,6 @@ public class PassengerServiceImpl implements PassengerService {
     private final ModelMapper modelMapper;
 
     private PassengerResponse toDTO(Passenger passenger) {
-        if (passenger == null) return null;
         PassengerResponse dto = modelMapper.map(passenger, PassengerResponse.class);
         dto.setRating(getRatingById(dto.getId()));
         return dto;
@@ -38,7 +38,10 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengersListResponse getList() {
-        List<PassengerResponse> passengers = passengerRepository.findAll().stream().map(this::toDTO).toList();
+        List<PassengerResponse> passengers = passengerRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
         return PassengersListResponse.builder()
                 .passengers(passengers)
                 .size(passengers.size())
@@ -48,7 +51,9 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengerResponse getById(Long id) {
         Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
-        if (optionalPassenger.isPresent()) return optionalPassenger.map(this::toDTO).get();
+        if (optionalPassenger.isPresent()) return optionalPassenger
+                .map(this::toDTO)
+                .get();
         else throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
     }
 
@@ -71,25 +76,25 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private void checkConstraints(Long id, PassengerCreationRequest dto) {
-        PassengerResponse passengerByEmail = getByEmail(dto.getEmail());
-        PassengerResponse passengerByPhone = getByPhone(dto.getPhone());
-        if (passengerByEmail != null && !Objects.equals(passengerByEmail.getId(), id))
+        Optional<Passenger> passengerByEmail = getEntityByEmail(dto.getEmail());
+        Optional<Passenger> passengerByPhone = getEntityByPhone(dto.getPhone());
+        if (passengerByEmail.isPresent() && !Objects.equals(passengerByEmail.get().getId(), id))
             throw new NotCreatedException("email", "Passenger with email={" + dto.getEmail() + "} is already exists");
-        if (passengerByPhone != null && !Objects.equals(passengerByPhone.getId(), id))
+        if (passengerByPhone.isPresent() && !Objects.equals(passengerByPhone.get().getId(), id))
             throw new NotCreatedException("phone", "Passenger with phone={" + dto.getPhone() + "} is already exists");
+    }
+
+    private Optional<Passenger> getEntityByEmail(String email) {
+        return passengerRepository.findPassengerByEmail(email);
+    }
+
+    private Optional<Passenger> getEntityByPhone(String phone) {
+        return passengerRepository.findPassengerByPhone(phone);
     }
 
     private void checkExistence(Long id) {
         if (!passengerRepository.existsById(id))
             throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
-    }
-
-    public PassengerResponse getByEmail(String email) {
-        return toDTO(passengerRepository.findPassengerByEmail(email));
-    }
-
-    public PassengerResponse getByPhone(String phone) {
-        return toDTO(passengerRepository.findPassengerByPhone(phone));
     }
 
     public PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field) {

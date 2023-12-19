@@ -1,6 +1,5 @@
 package com.modsen.passengerservice.exceptions.handler;
 
-import com.modsen.passengerservice.exceptions.CustomException;
 import com.modsen.passengerservice.exceptions.NotCreatedException;
 import com.modsen.passengerservice.exceptions.NotFoundException;
 import com.modsen.passengerservice.exceptions.response.ExceptionResponse;
@@ -11,7 +10,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @ControllerAdvice
 public class PassengerExceptionHandler {
@@ -19,12 +21,12 @@ public class PassengerExceptionHandler {
     private static final String SECOND_KEY = "message";
 
     @ExceptionHandler(value = {NotFoundException.class})
-    public ResponseEntity<ExceptionResponse> handleNotFoundException(CustomException ex) {
+    public ResponseEntity<ExceptionResponse> handleNotFoundException(NotFoundException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<ExceptionResponse> handleNotCreatedException(CustomException ex) {
+    public ResponseEntity<ExceptionResponse> handleNotCreatedException(NotCreatedException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
@@ -40,10 +42,9 @@ public class PassengerExceptionHandler {
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        List<Map<String, String>> responseList = new ArrayList<>();
-        ex.getFieldErrors().forEach(err -> {
-            responseList.add(Map.of(FIRST_KEY, err.getField(), SECOND_KEY, err.getDefaultMessage()));
-        });
+        List<Map<String, String>> responseList = ex.getFieldErrors().stream()
+                .map(err -> Map.of(FIRST_KEY, err.getField(), SECOND_KEY, err.getDefaultMessage()))
+                .toList();
         ExceptionResponse response = new ExceptionResponse(responseList);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }

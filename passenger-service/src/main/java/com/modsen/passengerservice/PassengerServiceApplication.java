@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         info = @Info(
                 title = "Cab Aggregator for Modsen Company",
                 version = "1.0.0",
-                description = "Микросервис для работы с информацией о пассажирах",
+                description = "Microservice for working with passenger information",
                 contact = @Contact(
                         name = "Dmitry Pasmurtsev",
                         email = "pasmurtsevd@gmail.com"

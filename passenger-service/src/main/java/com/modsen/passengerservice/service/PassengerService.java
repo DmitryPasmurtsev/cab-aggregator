@@ -3,9 +3,7 @@ package com.modsen.passengerservice.service;
 import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
 import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
-import org.springframework.stereotype.Component;
 
-@Component
 public interface PassengerService {
     PassengersListResponse getList();
 

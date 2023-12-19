@@ -115,8 +115,7 @@ public class RideServiceImpl implements RideService {
     public void passengerRejectRide(Long id, UserIdRequest dto) {
         Ride ride = getEntityById(id);
         checkPassengerAccess(ride, dto.getUserId());
-        if (ride.getStatus().getValue() > Status.ACCEPTED.getValue())
-            throw new WrongStatusException("status", "Ride with id={" + id + "} can`t be rejected");
+        checkPossibilityToReject(ride);
         ride.setStatus(Status.REJECTED);
         rideRepository.save(ride);
     }
@@ -124,12 +123,16 @@ public class RideServiceImpl implements RideService {
     public void driverRejectRide(Long id, UserIdRequest dto) {
         Ride ride = getEntityById(id);
         checkDriverAccess(ride, dto.getUserId());
-        if (ride.getStatus().getValue() > Status.ACCEPTED.getValue())
-            throw new WrongStatusException("status", "Ride with id={" + id + "} can`t be rejected");
+        checkPossibilityToReject(ride);
         ride.setStatus(Status.NOT_ACCEPTED);
         ride.setDriverId(getAvailableDriverId(null));
         ride.setStatus(Status.ACCEPTED);
         rideRepository.save(ride);
+    }
+
+    private void checkPossibilityToReject(Ride ride) {
+        if (ride.getStatus().getValue() > Status.ACCEPTED.getValue())
+            throw new WrongStatusException("status", "Ride with id={" + ride.getId() + "} can`t be rejected");
     }
 
     public RidesListResponse getAllRidesForPassenger(Long id) {

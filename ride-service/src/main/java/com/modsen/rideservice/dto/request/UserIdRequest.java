@@ -8,6 +8,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserIdRequest {
-    @NotNull(message = "User`s id should not be empty")
+    @NotNull(message = "{validation.user.id.notEmpty}")
     Long userId;
 }

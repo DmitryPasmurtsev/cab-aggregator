@@ -3,7 +3,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
 
-    <changeSet id="create-promocodes" author="DmitryPasmurtsev">
+    <changeSet id="3" author="DmitryPasmurtsev">
         <createTable tableName="promo_codes">
             <column name="name" type="varchar(30)">
                 <constraints primaryKey="true"/>

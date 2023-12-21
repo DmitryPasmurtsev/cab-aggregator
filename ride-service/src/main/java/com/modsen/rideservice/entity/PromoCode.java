@@ -22,6 +22,6 @@ public class PromoCode {
     @Id
     @Column(name = "name")
     String name;
-    @Column(name = "coefficient")
+    @Column(name = "coefficient", columnDefinition = "numeric(3,2)")
     Double coefficient;
 }

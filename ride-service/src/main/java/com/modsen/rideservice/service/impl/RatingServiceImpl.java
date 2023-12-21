@@ -17,7 +17,6 @@ public class RatingServiceImpl implements RatingService {
 
     public RatingResponse getRatingForPassenger(Long id) {
         List<Rating> ratings = ratingRepository.findAllByRidePassengerIdAndPassengerRatingIsNotNull(id);
-        if(ratings.isEmpty()) return new RatingResponse(id, null);
         List<Integer> passengerRatings = ratings.stream()
                 .map(Rating::getPassengerRating)
                 .toList();
@@ -26,7 +25,6 @@ public class RatingServiceImpl implements RatingService {
 
     public RatingResponse getRatingForDriver(Long id) {
         List<Rating> ratings = ratingRepository.findAllByRideDriverIdAndDriverRatingIsNotNull(id);
-        if(ratings.isEmpty()) return new RatingResponse(id, null);
         List<Integer> driverRatings = ratings.stream()
                 .map(Rating::getDriverRating)
                 .toList();

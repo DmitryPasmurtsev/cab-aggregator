@@ -34,19 +34,22 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
     public void delete(String name) {
         checkExistence(name);
+
         promoCodeRepository.deleteById(name);
     }
 
     public PromoCodeDTO create(PromoCodeDTO dto) {
         checkConstraints(dto);
+
         PromoCode promoCode = toModel(dto);
         promoCodeRepository.save(promoCode);
         return dto;
     }
 
     private void checkConstraints(PromoCodeDTO dto) {
-        if(promoCodeRepository.existsById(dto.getName()))
+        if(promoCodeRepository.existsById(dto.getName())){
             throw new NotCreatedException("name", "Promo code "+dto.getName()+ " already exists");
+        }
     }
 
     public PromoCodeDTO update(String name, PromoCodeUpdateRequest dto) {
@@ -57,11 +60,28 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
     private PromoCode getEntityById(String name) {
         Optional<PromoCode> promoCode = promoCodeRepository.findById(name);
-        if(promoCode.isPresent()) return promoCode.get();
+        if(promoCode.isPresent()) {
+            return promoCode.get();
+        }
         throw new NotFoundException("name", "Promo code "+name+" not found");
     }
 
-    public PromoCodesListResponse getList() {
+    public PromoCodesListResponse getList(Integer offset, Integer page, String field) {
+        if (offset != null && page != null && field != null){
+            return getAllWithPaginationAndSorting(offset, page, field);
+        }
+        else if (offset != null && page != null) {
+            return getAllWithPagination(offset, page);
+        }
+        else if (field != null) {
+            return getAllWithSorting(field);
+        }
+        else {
+            return getAll();
+        }
+    }
+
+    private PromoCodesListResponse getAll() {
         List<PromoCodeDTO> promoCodes = promoCodeRepository.findAll().stream()
                 .map(this::toDTO)
                 .toList();
@@ -72,8 +92,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
                 .build();
     }
 
-
-    public PromoCodesListResponse getList(Integer offset, Integer page, String field) {
+    private PromoCodesListResponse getAllWithPaginationAndSorting(Integer offset, Integer page, String field) {
         Page<PromoCodeDTO> promoCodes = promoCodeRepository.findAll(PageRequest.of(page, offset).withSort(Sort.by(field)))
                 .map(this::toDTO);
         return PromoCodesListResponse.builder()
@@ -85,7 +104,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
                 .build();
     }
 
-    public PromoCodesListResponse getList(Integer offset, Integer page) {
+    private PromoCodesListResponse getAllWithPagination(Integer offset, Integer page) {
         Page<PromoCodeDTO> promoCodes = promoCodeRepository.findAll(PageRequest.of(page, offset))
                 .map(this::toDTO);
         return PromoCodesListResponse.builder()
@@ -96,7 +115,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
                 .build();
     }
 
-    public PromoCodesListResponse getList(String field) {
+    public PromoCodesListResponse getAllWithSorting(String field) {
         List<PromoCodeDTO> promoCodes = promoCodeRepository.findAll(Sort.by(field)).stream()
                 .map(this::toDTO)
                 .toList();
@@ -113,6 +132,8 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     }
 
     private void checkExistence(String name) {
-        if (!promoCodeRepository.existsById(name)) throw new NotFoundException("name", "Promo code " + name+ " not found");
+        if (!promoCodeRepository.existsById(name)) {
+            throw new NotFoundException("name", "Promo code " + name + " not found");
+        }
     }
 }

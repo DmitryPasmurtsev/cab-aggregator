@@ -4,6 +4,8 @@ import com.modsen.rideservice.enums.Status;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +35,7 @@ public class Ride {
     Long id;
     @Column(name = "pick_up")
     String pickUp;
-    @Column(name = "date_of_ride")
+    @Column(name = "date_of_ride", columnDefinition = "date")
     Date date;
     @Column(name = "destination")
     String destination;
@@ -46,6 +48,7 @@ public class Ride {
     @Column(name = "final_cost")
     Double finalCost;
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     Status status;
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn

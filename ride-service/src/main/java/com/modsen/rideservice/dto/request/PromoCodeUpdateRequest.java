@@ -10,8 +10,8 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PromoCodeUpdateRequest {
-    @NotNull(message = "Coefficient should not be empty")
-    @DecimalMin(value = "0.1", message = "Minimum coefficient is 0.1")
-    @DecimalMax(value = "0.95", message = "Maximum coefficient is 0.95")
+    @NotNull(message = "{validation.promo-code.coefficient.notEmpty}")
+    @DecimalMin(value = "0.1", message = "{validation.minValue} 0.1")
+    @DecimalMax(value = "0.95", message = "{validation.maxValue} 0.95")
     Double coefficient;
 }

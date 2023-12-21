@@ -24,22 +24,22 @@ public class RideExceptionHandler {
 
     @ExceptionHandler(value = {NotFoundException.class})
     public ResponseEntity<ExceptionResponse> handleNotFoundException(NotFoundException ex) {
-        return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createResponse(ex.getField(), ex.getMessage()));
     }
 
     @ExceptionHandler(value = {NotCreatedException.class, WrongStatusException.class, NoAccessException.class})
     public ResponseEntity<ExceptionResponse> handleNotCreateWrongStatusNoAccessException(CustomException ex) {
-        return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse(ex.getField(), ex.getMessage()));
     }
 
     @ExceptionHandler(value = {PropertyReferenceException.class})
     public ResponseEntity<ExceptionResponse> handlePropertyReferenceException(PropertyReferenceException ex) {
-        return new ResponseEntity<>(createResponse(ex.getPropertyName(), ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse(ex.getPropertyName(), ex.getMessage()));
     }
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
     public ResponseEntity<ExceptionResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return new ResponseEntity<>(createResponse("pagination", ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createResponse("pagination", ex.getMessage()));
     }
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
@@ -48,7 +48,7 @@ public class RideExceptionHandler {
                 .map(err -> Map.of(FIRST_KEY, err.getField(), SECOND_KEY, err.getDefaultMessage()))
                 .toList();
         ExceptionResponse response = new ExceptionResponse(responseList);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     private ExceptionResponse createResponse(String firstValue, String secondValue) {

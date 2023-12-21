@@ -14,10 +14,4 @@ public interface PromoCodeService {
     PromoCodeDTO update(String name, PromoCodeUpdateRequest dto);
 
     PromoCodesListResponse getList(Integer offset, Integer page, String field);
-
-    PromoCodesListResponse getList(Integer offset, Integer page);
-
-    PromoCodesListResponse getList(String field);
-
-    PromoCodesListResponse getList();
 }

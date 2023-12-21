@@ -9,11 +9,11 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RideCreationRequest {
-    @NotNull(message = "Passenger id should not be empty")
+    @NotNull(message = "{validation.passenger.id.notEmpty}")
     Long passengerId;
-    @NotBlank(message = "Pick-up address should not be empty")
+    @NotBlank(message = "{validation.rides.pick-up.notEmpty}")
     String pickUp;
-    @NotBlank(message = "Destination address should not be empty")
+    @NotBlank(message = "{validation.rides.destination.notEmpty}")
     String destination;
     String promoCode;
 }

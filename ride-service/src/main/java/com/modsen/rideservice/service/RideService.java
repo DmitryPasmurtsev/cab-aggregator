@@ -6,30 +6,24 @@ import com.modsen.rideservice.dto.request.RideCreationRequest;
 import com.modsen.rideservice.dto.request.UserIdRequest;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
+import com.modsen.rideservice.dto.response.StringResponse;
 
 public interface RideService {
-
     RideResponse getById(Long id);
 
-    void deleteRide(Long id);
+    StringResponse deleteRide(Long id);
 
     RideResponse addRide(RideCreationRequest dto);
 
-    void finishRide(Long id, DriverFinishRequest dto);
+    StringResponse finishRide(Long id, DriverFinishRequest dto);
 
-    void finishRide(Long id, PassengerFinishRequest dto);
+    StringResponse finishRide(Long id, PassengerFinishRequest dto);
 
-    void startRide(Long id, UserIdRequest dto);
+    StringResponse startRide(Long id, UserIdRequest dto);
 
-    void passengerRejectRide(Long id, UserIdRequest dto);
+    StringResponse passengerRejectRide(Long id, UserIdRequest dto);
 
-    void driverRejectRide(Long id, UserIdRequest dto);
+    StringResponse driverRejectRide(Long id, UserIdRequest dto);
 
-    RidesListResponse getAllRidesForPassenger(Long id);
-
-    RidesListResponse getAllRidesForPassenger(Long id, Integer offset, Integer page, String field);
-
-    RidesListResponse getAllRidesForPassenger(Long id, Integer offset, Integer page);
-
-    RidesListResponse getAllRidesForPassenger(Long id, String field);
+    RidesListResponse getList(Long id, Integer offset, Integer page, String field);
 }

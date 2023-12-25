@@ -1,6 +1,6 @@
 package com.modsen.rideservice.controller;
 
-import com.modsen.rideservice.dto.request.PromoCodeDTO;
+import com.modsen.rideservice.dto.request.PromoCodeDto;
 import com.modsen.rideservice.dto.request.PromoCodeUpdateRequest;
 import com.modsen.rideservice.dto.response.PromoCodesListResponse;
 import com.modsen.rideservice.service.PromoCodeService;
@@ -44,7 +44,7 @@ public class PromoCodeController {
     @Operation(
             summary = "Creating a promotional code"
     )
-    public PromoCodeDTO createPromo(@RequestBody @Valid PromoCodeDTO dto) {
+    public PromoCodeDto createPromo(@RequestBody @Valid PromoCodeDto dto) {
         return promoCodeService.create(dto);
     }
 
@@ -52,7 +52,7 @@ public class PromoCodeController {
     @Operation(
             summary = "Changing the promotional code"
     )
-    public PromoCodeDTO updatePromo(@PathVariable String name, @RequestBody @Valid PromoCodeUpdateRequest dto) {
+    public PromoCodeDto updatePromo(@PathVariable String name, @RequestBody @Valid PromoCodeUpdateRequest dto) {
         return promoCodeService.update(name, dto);
     }
 

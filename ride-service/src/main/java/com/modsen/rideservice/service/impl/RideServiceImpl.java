@@ -17,8 +17,12 @@ import com.modsen.rideservice.exceptions.WrongStatusException;
 import com.modsen.rideservice.repository.RideRepository;
 import com.modsen.rideservice.service.PromoCodeService;
 import com.modsen.rideservice.service.RideService;
+import jakarta.validation.MessageInterpolator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
@@ -36,9 +41,11 @@ public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final PromoCodeService promoCodeService;
     private final ModelMapper modelMapper;
+    private final MessageSource messageSource;
+    private final Locale locale;
 
 
-    private RideResponse toDTO(Ride ride) {
+    private RideResponse toDto(Ride ride) {
         return modelMapper.map(ride, RideResponse.class);
     }
 
@@ -49,18 +56,18 @@ public class RideServiceImpl implements RideService {
     public StringResponse deleteRide(Long id) {
         checkExistence(id);
         rideRepository.deleteById(id);
-        String message = "Ride with id={" + id + "} has been removed";
+        String message = messageSource.getMessage("message.ride.hasBeenRemoved", null, locale);
         return new StringResponse(message);
     }
 
     public RideResponse getById(Long id) {
-        return toDTO(getEntityById(id));
+        return toDto(getEntityById(id));
     }
 
     public RideResponse addRide(RideCreationRequest dto) {
         Ride ride = toModel(dto);
         initializeRideFields(ride, dto);
-        return toDTO(rideRepository.save(ride));
+        return toDto(rideRepository.save(ride));
     }
 
     private void initializeRideFields(Ride ride, RideCreationRequest dto) {
@@ -94,7 +101,7 @@ public class RideServiceImpl implements RideService {
         if (ride.isPresent()) {
             return ride.get();
         }
-        throw new NotFoundException("id", "Ride with id={" + id + "} not found");
+        throw new NotFoundException("id", "message.ride.notFound");
     }
 
     private Long getAvailableDriverId(DriverRejectRequest dto) {
@@ -106,8 +113,9 @@ public class RideServiceImpl implements RideService {
     public StringResponse finishRide(Long id, DriverFinishRequest dto) {
         Ride ride = getEntityById(id);
 
+        checkDriverAccess(ride, dto.getDriverId());
         if (ride.getStatus() != Status.STARTED) {
-            throw new WrongStatusException("status", "Ride with id={" + id + "} not started");
+            throw new WrongStatusException("status", "message.ride.notStarted");
         }
 
         ride.setStatus(Status.FINISHED);
@@ -118,18 +126,20 @@ public class RideServiceImpl implements RideService {
         ride.setRating(rating);
         rideRepository.save(ride);
 
-        String message = "Ride with id={" + id + "} has been successfully finished";
+        String message = messageSource.getMessage("message.ride.hasBeenFinished", null, locale);
         return new StringResponse(message);
     }
 
     public StringResponse finishRide(Long id, PassengerFinishRequest dto) {
         Ride ride = getEntityById(id);
+
+        checkPassengerAccess(ride, dto.getPassengerId());
         if (dto.getRatingToDriver() != null) {
             ride.getRating().setDriverRating(dto.getRatingToDriver());
         }
         rideRepository.save(ride);
 
-        String message = "Ride with id={" + id + "} has been successfully finished";
+        String message = messageSource.getMessage("message.ride.hasBeenFinished", null, locale);
         return new StringResponse(message);
     }
 
@@ -138,12 +148,12 @@ public class RideServiceImpl implements RideService {
 
         checkDriverAccess(ride, dto.getUserId());
         if (ride.getStatus() != Status.ACCEPTED)
-            throw new WrongStatusException("status", "Ride with id={" + id + "} has wrong status");
+            throw new WrongStatusException("status", "message.ride.wrongStatus");
 
         ride.setStatus(Status.STARTED);
         rideRepository.save(ride);
 
-        String message = "Ride with id={" + id + "} has been started";
+        String message = messageSource.getMessage("message.ride.hasBeenStarted", null, locale);
         return new StringResponse(message);
     }
 
@@ -156,7 +166,7 @@ public class RideServiceImpl implements RideService {
         ride.setStatus(Status.REJECTED);
         rideRepository.save(ride);
 
-        String message = "Ride with id={" + id + "} has been successfully rejected";
+        String message = messageSource.getMessage("message.ride.hasBeenRejected", null, locale);
         return new StringResponse(message);
     }
 
@@ -171,13 +181,13 @@ public class RideServiceImpl implements RideService {
         ride.setStatus(Status.ACCEPTED);
         rideRepository.save(ride);
 
-        String message = "Ride with id={" + id + "} has been successfully rejected";
+        String message = messageSource.getMessage("message.ride.hasBeenRejected", null, locale);
         return new StringResponse(message);
     }
 
     private void checkPossibilityToReject(Ride ride) {
         if (ride.getStatus().getValue() > Status.ACCEPTED.getValue()) {
-            throw new WrongStatusException("status", "Ride with id={" + ride.getId() + "} can`t be rejected");
+            throw new WrongStatusException("status", "message.ride.notRejected");
         }
     }
 
@@ -198,7 +208,7 @@ public class RideServiceImpl implements RideService {
 
     private RidesListResponse getRidesForPassenger(Long id) {
         List<RideResponse> rides = rideRepository.findAllByPassengerId(id).stream()
-                .map(this::toDTO)
+                .map(this::toDto)
                 .toList();
         return RidesListResponse.builder()
                 .rides(rides)
@@ -209,7 +219,7 @@ public class RideServiceImpl implements RideService {
 
     private RidesListResponse getRidesForPassenger(Long id, Integer offset, Integer page, String field) {
         Page<RideResponse> ridesPage = rideRepository.findAllByPassengerId(id, PageRequest.of(page, offset).withSort(Sort.by(field)))
-                .map(this::toDTO);
+                .map(this::toDto);
         return RidesListResponse.builder()
                 .rides(ridesPage.getContent())
                 .size(ridesPage.getContent().size())
@@ -220,7 +230,8 @@ public class RideServiceImpl implements RideService {
     }
 
     private RidesListResponse getRidesForPassenger(Long id, Integer offset, Integer page) {
-        Page<RideResponse> ridesPage = rideRepository.findAllByPassengerId(id, PageRequest.of(page, offset)).map(this::toDTO);
+        Page<RideResponse> ridesPage = rideRepository.findAllByPassengerId(id, PageRequest.of(page, offset))
+                .map(this::toDto);
         return RidesListResponse.builder()
                 .rides(ridesPage.getContent())
                 .size(ridesPage.getContent().size())
@@ -231,7 +242,7 @@ public class RideServiceImpl implements RideService {
 
     private RidesListResponse getRidesForPassenger(Long id, String field) {
         List<RideResponse> ridesList = rideRepository.findAllByPassengerId(id, Sort.by(field)).stream()
-                .map(this::toDTO)
+                .map(this::toDto)
                 .toList();
         return RidesListResponse.builder()
                 .rides(ridesList)
@@ -243,20 +254,19 @@ public class RideServiceImpl implements RideService {
 
     private void checkPassengerAccess(Ride ride, Long passengerId) {
         if (!Objects.equals(ride.getPassengerId(), passengerId)) {
-            throw new NoAccessException("userId", "Passenger with id={" + passengerId + "} has no access to ride with id={" + ride.getId() + "}");
-
+            throw new NoAccessException("userId", "message.passenger.noAccessToRide");
         }
     }
 
     private void checkDriverAccess(Ride ride, Long driverId) {
         if (!Objects.equals(ride.getDriverId(), driverId)) {
-            throw new NoAccessException("userId", "Driver with id={" + driverId + "} has no access to ride with id={" + ride.getId() + "}");
+            throw new NoAccessException("userId", "message.driver.noAccessToRide");
         }
     }
 
     private void checkExistence(Long id) {
         if (!rideRepository.existsById(id)) {
-            throw new NotFoundException("id", "Ride with id={" + id + "} not found");
+            throw new NotFoundException("id", "message.ride.notFound");
         }
     }
 }

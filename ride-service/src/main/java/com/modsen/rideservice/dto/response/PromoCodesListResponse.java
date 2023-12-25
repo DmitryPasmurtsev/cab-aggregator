@@ -1,6 +1,6 @@
 package com.modsen.rideservice.dto.response;
 
-import com.modsen.rideservice.dto.request.PromoCodeDTO;
+import com.modsen.rideservice.dto.request.PromoCodeDto;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,5 +16,5 @@ public class PromoCodesListResponse {
     Integer size;
     Integer total;
     String sortedByField;
-    List<PromoCodeDTO> codes;
+    List<PromoCodeDto> codes;
 }

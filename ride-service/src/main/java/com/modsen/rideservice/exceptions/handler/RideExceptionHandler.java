@@ -25,8 +25,8 @@ import java.util.Map;
 public class RideExceptionHandler {
     private final Locale locale;
     private final MessageSource messageSource;
-    static final String FIRST_KEY = "cause";
-    static final String SECOND_KEY = "message";
+    private static final String EXCEPTION_CAUSE_KEY = "cause";
+    private static final String EXCEPTION_MESSAGE_KEY = "message";
 
     @ExceptionHandler(value = {NotFoundException.class})
     public ResponseEntity<ExceptionResponse> handleNotFoundException(NotFoundException ex) {
@@ -55,7 +55,7 @@ public class RideExceptionHandler {
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<Map<String, String>> responseList = ex.getFieldErrors().stream()
-                .map(err -> Map.of(FIRST_KEY, err.getField(), SECOND_KEY, err.getDefaultMessage()))
+                .map(err -> Map.of(EXCEPTION_CAUSE_KEY, err.getField(), EXCEPTION_MESSAGE_KEY, err.getDefaultMessage()))
                 .toList();
         ExceptionResponse response = new ExceptionResponse(responseList);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -63,7 +63,7 @@ public class RideExceptionHandler {
     }
 
     private ExceptionResponse createResponse(String firstValue, String secondValue) {
-        List<Map<String, String>> list = Collections.singletonList(Map.of(FIRST_KEY, firstValue, SECOND_KEY, secondValue));
+        List<Map<String, String>> list = Collections.singletonList(Map.of(EXCEPTION_CAUSE_KEY, firstValue, EXCEPTION_MESSAGE_KEY, secondValue));
         return new ExceptionResponse(list);
     }
 }

@@ -47,7 +47,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     }
 
     private void checkConstraints(PromoCodeDto dto) {
-        if(promoCodeRepository.existsById(dto.getName())){
+        if (promoCodeRepository.existsById(dto.getName())) {
             throw new NotCreatedException("name", "message.promo-code.alreadyExists");
         }
     }
@@ -60,25 +60,22 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
     private PromoCode getEntityById(String name) {
         Optional<PromoCode> promoCode = promoCodeRepository.findById(name);
-        if(promoCode.isPresent()) {
+        if (promoCode.isPresent()) {
             return promoCode.get();
         }
         throw new NotFoundException("name", "message.promo-code.notFound");
     }
 
     public PromoCodesListResponse getList(Integer offset, Integer page, String field) {
-        if (offset != null && page != null && field != null){
+        if (offset != null && page != null && field != null) {
             return getAllWithPaginationAndSorting(offset, page, field);
-        }
-        else if (offset != null && page != null) {
+        } else if (offset != null && page != null) {
             return getAllWithPagination(offset, page);
-        }
-        else if (field != null) {
+        } else if (field != null) {
             return getAllWithSorting(field);
         }
-        else {
-            return getAll();
-        }
+
+        return getAll();
     }
 
     private PromoCodesListResponse getAll() {

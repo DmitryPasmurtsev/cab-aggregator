@@ -34,6 +34,6 @@ public class RatingServiceImpl implements RatingService {
     private Double calculateRating(List<Integer> ratings) {
         AtomicReference<Integer> totalRating = new AtomicReference<>(0);
         ratings.forEach(r -> totalRating.updateAndGet(v -> v + r));
-        return Math.round(totalRating.get()*100.0/ratings.size())/100.0;
+        return Math.round(totalRating.get() * 100.0 / ratings.size()) / 100.0;
     }
 }

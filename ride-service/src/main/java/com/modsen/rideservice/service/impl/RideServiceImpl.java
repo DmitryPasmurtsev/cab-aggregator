@@ -147,8 +147,9 @@ public class RideServiceImpl implements RideService {
         Ride ride = getEntityById(id);
 
         checkDriverAccess(ride, dto.getUserId());
-        if (ride.getStatus() != Status.ACCEPTED)
+        if (ride.getStatus() != Status.ACCEPTED) {
             throw new WrongStatusException("status", "message.ride.wrongStatus");
+        }
 
         ride.setStatus(Status.STARTED);
         rideRepository.save(ride);
@@ -194,16 +195,13 @@ public class RideServiceImpl implements RideService {
     public RidesListResponse getList(Long id, Integer offset, Integer page, String field) {
         if (offset != null && page != null && field != null) {
             return getRidesForPassenger(id, offset, page, field);
-        }
-        else if (offset != null && page != null) {
+        } else if (offset != null && page != null) {
             return getRidesForPassenger(id, offset, page);
-        }
-        else if (field != null) {
+        } else if (field != null) {
             return getRidesForPassenger(id, field);
         }
-        else {
-            return getRidesForPassenger(id);
-        }
+
+        return getRidesForPassenger(id);
     }
 
     private RidesListResponse getRidesForPassenger(Long id) {

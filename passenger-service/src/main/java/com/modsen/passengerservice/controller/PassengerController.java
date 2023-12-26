@@ -37,12 +37,7 @@ public class PassengerController {
             @RequestParam(required = false) Integer offset,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String field) {
-        if (offset != null && page != null && field != null)
-            return passengerService.getListWithPaginationAndSort(offset, page, field);
-        else if (offset != null && page != null)
-            return passengerService.getListWithPagination(offset, page);
-        else if (field != null) return passengerService.getListWithSort(field);
-        else return passengerService.getList();
+        return passengerService.getPassengersList(offset, page, field);
     }
 
     @GetMapping("/{id}")

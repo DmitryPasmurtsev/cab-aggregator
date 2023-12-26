@@ -15,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,7 +26,7 @@ public class PassengerServiceImpl implements PassengerService {
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
 
-    private PassengerResponse toDTO(Passenger passenger) {
+    private PassengerResponse toDto(Passenger passenger) {
         PassengerResponse dto = modelMapper.map(passenger, PassengerResponse.class);
         dto.setRating(getRatingById(dto.getId()));
         return dto;
@@ -37,10 +36,10 @@ public class PassengerServiceImpl implements PassengerService {
         return modelMapper.map(passenger, Passenger.class);
     }
 
-    public PassengersListResponse getList() {
+    private PassengersListResponse getList() {
         List<PassengerResponse> passengers = passengerRepository.findAll()
                 .stream()
-                .map(this::toDTO)
+                .map(this::toDto)
                 .toList();
         return PassengersListResponse.builder()
                 .passengers(passengers)
@@ -51,10 +50,11 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengerResponse getById(Long id) {
         Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
-        if (optionalPassenger.isPresent()) return optionalPassenger
-                .map(this::toDTO)
-                .get();
-        else throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
+        if (optionalPassenger.isPresent()) {
+            return optionalPassenger
+                    .map(this::toDto)
+                    .get();
+        } else throw new NotFoundException("id", "message.passenger.id.notFound");
     }
 
     public void deletePassenger(Long id) {
@@ -64,7 +64,7 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengerResponse addPassenger(PassengerCreationRequest dto) {
         checkConstraints(null, dto);
-        return toDTO(passengerRepository.save(toModel(dto)));
+        return toDto(passengerRepository.save(toModel(dto)));
     }
 
     public PassengerResponse updatePassenger(Long id, PassengerCreationRequest dto) {
@@ -72,16 +72,18 @@ public class PassengerServiceImpl implements PassengerService {
         checkConstraints(id, dto);
         Passenger passenger = toModel(dto);
         passenger.setId(id);
-        return toDTO(passengerRepository.save(passenger));
+        return toDto(passengerRepository.save(passenger));
     }
 
     private void checkConstraints(Long id, PassengerCreationRequest dto) {
         Optional<Passenger> passengerByEmail = getEntityByEmail(dto.getEmail());
         Optional<Passenger> passengerByPhone = getEntityByPhone(dto.getPhone());
-        if (passengerByEmail.isPresent() && !Objects.equals(passengerByEmail.get().getId(), id))
-            throw new NotCreatedException("email", "Passenger with email={" + dto.getEmail() + "} is already exists");
-        if (passengerByPhone.isPresent() && !Objects.equals(passengerByPhone.get().getId(), id))
-            throw new NotCreatedException("phone", "Passenger with phone={" + dto.getPhone() + "} is already exists");
+        if (passengerByEmail.isPresent() && !Objects.equals(passengerByEmail.get().getId(), id)) {
+            throw new NotCreatedException("email", "message.passenger.email.alreadyExists");
+        }
+        if (passengerByPhone.isPresent() && !Objects.equals(passengerByPhone.get().getId(), id)) {
+            throw new NotCreatedException("phone", "message.passenger.phone.alreadyExists");
+        }
     }
 
     private Optional<Passenger> getEntityByEmail(String email) {
@@ -93,14 +95,15 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private void checkExistence(Long id) {
-        if (!passengerRepository.existsById(id))
-            throw new NotFoundException("id", "Passenger with id={" + id + "} not found");
+        if (!passengerRepository.existsById(id)) {
+            throw new NotFoundException("id", "message.passenger.id.notFound");
+        }
     }
 
-    public PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field) {
+    private PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field) {
         Page<PassengerResponse> responsePage = passengerRepository.findAll(PageRequest.of(page, offset)
                         .withSort(Sort.by(field)))
-                .map(this::toDTO);
+                .map(this::toDto);
         return PassengersListResponse.builder()
                 .passengers(responsePage.getContent())
                 .size(responsePage.getContent().size())
@@ -110,9 +113,9 @@ public class PassengerServiceImpl implements PassengerService {
                 .build();
     }
 
-    public PassengersListResponse getListWithPagination(Integer offset, Integer page) {
+    private PassengersListResponse getListWithPagination(Integer offset, Integer page) {
         Page<PassengerResponse> responsePage = passengerRepository.findAll(PageRequest.of(page, offset))
-                .map(this::toDTO);
+                .map(this::toDto);
         return PassengersListResponse.builder()
                 .passengers(responsePage.getContent())
                 .size(responsePage.getContent().size())
@@ -121,10 +124,10 @@ public class PassengerServiceImpl implements PassengerService {
                 .build();
     }
 
-    public PassengersListResponse getListWithSort(String field) {
+    private PassengersListResponse getListWithSort(String field) {
         List<PassengerResponse> responseList = passengerRepository.findAll(Sort.by(field))
                 .stream()
-                .map(this::toDTO)
+                .map(this::toDto)
                 .toList();
         return PassengersListResponse.builder()
                 .passengers(responseList)
@@ -139,5 +142,17 @@ public class PassengerServiceImpl implements PassengerService {
         double rating = new Random().nextDouble(1, 5);
         rating = Math.round(rating * 10) / 10.0;
         return rating;
+    }
+
+    public PassengersListResponse getPassengersList(Integer offset, Integer page, String field) {
+        if (offset != null && page != null && field != null) {
+            return getListWithPaginationAndSort(offset, page, field);
+        } else if (offset != null && page != null) {
+            return getListWithPagination(offset, page);
+        } else if (field != null) {
+            return getListWithSort(field);
+        }
+
+        return getList();
     }
 }

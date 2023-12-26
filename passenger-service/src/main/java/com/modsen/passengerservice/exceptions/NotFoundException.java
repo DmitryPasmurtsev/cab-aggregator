@@ -1,7 +1,16 @@
 package com.modsen.passengerservice.exceptions;
 
-public class NotFoundException extends CustomException {
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class NotFoundException extends RuntimeException {
+    final String field;
+
     public NotFoundException(String field, String message) {
-        super(field, message);
+        super(message);
+        this.field = field;
     }
 }

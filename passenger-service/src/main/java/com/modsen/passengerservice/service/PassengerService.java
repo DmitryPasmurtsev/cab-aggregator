@@ -5,8 +5,6 @@ import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
 
 public interface PassengerService {
-    PassengersListResponse getList();
-
     PassengerResponse getById(Long id);
 
     void deletePassenger(Long id);
@@ -15,11 +13,7 @@ public interface PassengerService {
 
     PassengerResponse updatePassenger(Long id, PassengerCreationRequest dto);
 
-    PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field);
-
-    PassengersListResponse getListWithPagination(Integer offset, Integer page);
-
-    PassengersListResponse getListWithSort(String field);
-
     Double getRatingById(Long id);
+
+    PassengersListResponse getPassengersList(Integer offset, Integer page, String field);
 }

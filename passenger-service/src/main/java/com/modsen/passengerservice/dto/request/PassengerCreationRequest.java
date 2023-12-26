@@ -12,14 +12,14 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PassengerCreationRequest {
-    @NotBlank(message = "Name should not be empty")
+    @NotBlank(message = "{validation.passenger.name.notEmpty}")
     String name;
-    @NotBlank(message = "Surname should not be empty")
+    @NotBlank(message = "{validation.passenger.surname.notEmpty}")
     String surname;
-    @NotBlank(message = "Phone should not be empty")
-    @Pattern(regexp = "^(80(29|44|33|25)\\d{7})$", message = "Phone pattern is 80xxxxxxxxx. Length is 11 characters. Valid codes are 29, 44, 33, 25")
+    @NotBlank(message = "{validation.passenger.phone.notEmpty}")
+    @Pattern(regexp = "^(80(29|44|33|25)\\d{7})$", message = "{validation.passenger.phone.notValid}")
     String phone;
-    @NotBlank(message = "Email should not be empty")
-    @Email(message = "Email address not valid")
+    @NotBlank(message = "{validation.passenger.email.notEmpty}")
+    @Email(message = "{validation.passenger.email.notValid}")
     String email;
 }

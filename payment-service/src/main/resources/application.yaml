@@ -1,0 +1,17 @@
+server:
+  port: 9004
+stripe:
+  key:
+    public: ${STRIPE_PUBLIC_KEY}
+    secret: ${STRIPE_SECRET_KEY}
+spring:
+  liquibase:
+    enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment_service
+    username: postgres
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

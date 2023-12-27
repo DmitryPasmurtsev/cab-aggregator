@@ -6,15 +6,17 @@
 
     <groupId>com.modsen</groupId>
     <artifactId>cab-aggregator</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
+        <module>payment-service</module>
+        <module>driver-service</module>
+        <module>passenger-service</module>
         <module>ride-service</module>
     </modules>
-
     <properties>
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
 </project>

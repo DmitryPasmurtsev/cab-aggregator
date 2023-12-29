@@ -3,9 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>cab-aggregator</artifactId>
-        <groupId>com.modsen</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +16,13 @@
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.version>3.1.5</spring.version>
+        <spring.version>3.2.0</spring.version>
         <postgres.version>42.7.1</postgres.version>
         <lombok.version>1.18.30</lombok.version>
         <modelmapper.version>3.1.1</modelmapper.version>
         <liquibase.version>4.25.0</liquibase.version>
         <swagger.version>2.2.0</swagger.version>
+        <kafka.version>3.1.1</kafka.version>
     </properties>
     <dependencies>
         <dependency>
@@ -63,6 +65,10 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
     </dependencies>
 </project>

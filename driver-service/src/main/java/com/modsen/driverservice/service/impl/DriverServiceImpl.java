@@ -1,8 +1,12 @@
 package com.modsen.driverservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
+import com.modsen.driverservice.dto.request.DriverIdDto;
 import com.modsen.driverservice.dto.response.DriverResponse;
 import com.modsen.driverservice.dto.response.DriversListResponse;
+import com.modsen.driverservice.dto.response.StringResponse;
 import com.modsen.driverservice.entity.Driver;
 import com.modsen.driverservice.exceptions.NotCreatedException;
 import com.modsen.driverservice.exceptions.NotFoundException;
@@ -13,6 +17,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +32,7 @@ import java.util.Random;
 public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
     private final ModelMapper modelMapper;
+    private final KafkaTemplate<String, DriverIdDto> kafkaTemplate;
 
     private DriverResponse toDTO(Driver driver) {
         DriverResponse dto = modelMapper.map(driver, DriverResponse.class);
@@ -96,7 +104,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     private Optional<Driver> getEntityByPhone(String phone) {
-        return driverRepository.findPassengerByPhone(phone);
+        return driverRepository.findDriverByPhone(phone);
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page, String field) {
@@ -179,15 +187,39 @@ public class DriverServiceImpl implements DriverService {
         return rating;
     }
 
-    public boolean changeAvailabilityStatus(Long id) {
+    public void changeAvailabilityStatus(Long id) {
         Driver driver = getEntityById(id);
         driver.setAvailable(!driver.isAvailable());
         driverRepository.save(driver);
-        return driver.isAvailable();
+        if (driver.isAvailable()) {
+            notifyDriverAvailability(id);
+        }
+    }
+
+    private void notifyDriverAvailability(Long id) {
+        kafkaTemplate.send("available-drivers", new DriverIdDto(id));
     }
 
     private void checkExistence(Long id) {
         if (!driverRepository.existsById(id))
             throw new NotFoundException("id", "Driver with id={" + id + "} not found");
+    }
+
+    @KafkaListener(
+            topics = "change-driver-status",
+            groupId = "foo"
+    )
+    void changeDriverStatusListener(@Payload String data) throws JsonProcessingException {
+        DriverIdDto dto = new ObjectMapper().readValue(data, DriverIdDto.class);
+        changeAvailabilityStatus(dto.getDriverId());
+    }
+
+    @KafkaListener(
+            topics = "new-rides",
+            groupId = "qwe"
+    )
+    void rideCreationListener(@Payload String data) {
+        Optional<Driver> driverOptional = driverRepository.findFirstByIsAvailableIsTrue();
+        driverOptional.ifPresent(driver -> notifyDriverAvailability(driver.getId()));
     }
 }

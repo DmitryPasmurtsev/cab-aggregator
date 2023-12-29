@@ -11,11 +11,13 @@ import java.util.Optional;
 
 public interface DriverRepository extends JpaRepository<Driver, Long> {
 
-    Optional<Driver> findPassengerByPhone(String phone);
+    Optional<Driver> findDriverByPhone(String phone);
 
     List<Driver> findAllByIsAvailableIsTrue();
 
     Page<Driver> findAllByIsAvailableIsTrue(Pageable pageable);
 
     List<Driver> findAllByIsAvailableIsTrue(Sort sort);
+
+    Optional<Driver> findFirstByIsAvailableIsTrue();
 }

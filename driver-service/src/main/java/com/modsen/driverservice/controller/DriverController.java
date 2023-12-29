@@ -98,13 +98,12 @@ public class DriverController {
         return new RatingResponse(driverService.getRatingById(id), id);
     }
 
-    @PatchMapping("/{id}/available")
+    @GetMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
-            summary = "Change of status"
+            summary = "Change driver status"
     )
-    public StringResponse changeAvailability(@PathVariable Long id) {
-        return new StringResponse("Availability status of driver with id={" + id + "} has been changed. Now is_available={" + driverService.changeAvailabilityStatus(id) + "}");
+    public void changeAvailability(@PathVariable Long id) {
+        driverService.changeAvailabilityStatus(id);
     }
-
-
 }

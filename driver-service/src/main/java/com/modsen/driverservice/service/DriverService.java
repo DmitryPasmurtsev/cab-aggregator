@@ -3,6 +3,7 @@ package com.modsen.driverservice.service;
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
 import com.modsen.driverservice.dto.response.DriverResponse;
 import com.modsen.driverservice.dto.response.DriversListResponse;
+import com.modsen.driverservice.dto.response.StringResponse;
 import org.springframework.stereotype.Service;
 
 public interface DriverService {
@@ -32,5 +33,5 @@ public interface DriverService {
 
     Double getRatingById(Long id);
 
-    boolean changeAvailabilityStatus(Long id);
+    void changeAvailabilityStatus(Long id);
 }

@@ -1,6 +1,9 @@
 package com.modsen.rideservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modsen.rideservice.dto.request.DriverFinishRequest;
+import com.modsen.rideservice.dto.request.DriverIdDto;
 import com.modsen.rideservice.dto.request.DriverRejectRequest;
 import com.modsen.rideservice.dto.request.PassengerFinishRequest;
 import com.modsen.rideservice.dto.request.RideCreationRequest;
@@ -17,15 +20,15 @@ import com.modsen.rideservice.exceptions.WrongStatusException;
 import com.modsen.rideservice.repository.RideRepository;
 import com.modsen.rideservice.service.PromoCodeService;
 import com.modsen.rideservice.service.RideService;
-import jakarta.validation.MessageInterpolator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -43,6 +46,8 @@ public class RideServiceImpl implements RideService {
     private final ModelMapper modelMapper;
     private final MessageSource messageSource;
     private final Locale locale;
+    private final KafkaTemplate<String, DriverIdDto> kafkaTemplateDriverId;
+    private final KafkaTemplate<String, String> kafkaTemplateString;
 
 
     private RideResponse toDto(Ride ride) {
@@ -67,7 +72,38 @@ public class RideServiceImpl implements RideService {
     public RideResponse addRide(RideCreationRequest dto) {
         Ride ride = toModel(dto);
         initializeRideFields(ride, dto);
+
+        notifyDriversAboutRideCreation();
+
         return toDto(rideRepository.save(ride));
+    }
+
+    private void notifyDriversAboutRideCreation() {
+        kafkaTemplateString.send("new-rides", "New ride created; Need a driver");
+    }
+
+    @KafkaListener(
+            topics = "available-drivers",
+            groupId = "bar"
+    )
+    void availableDriverListener(@Payload String data) throws JsonProcessingException {
+        DriverIdDto dto = new ObjectMapper().readValue(data, DriverIdDto.class);
+        System.err.println("Освободился водитель: " +dto.getDriverId());
+        setDriverToRide(dto.getDriverId());
+    }
+
+    private void setDriverToRide(Long driverId) {
+        System.err.println("начинаем поиск поездки без водителя");
+        Optional<Ride> rideOptional = rideRepository.findFirstByDriverIdIsNull();
+        if (rideOptional.isPresent()) {
+            Ride ride = rideOptional.get();
+            System.err.println("Найдена поездка с id " + ride.getId());
+            ride.setDriverId(driverId);
+            ride.setStatus(Status.ACCEPTED);
+            System.err.println("Начинаем сохранять поездку с id " + ride.getId());
+            rideRepository.save(ride);
+            changeDriverAvailabilityStatus(driverId);
+        }
     }
 
     private void initializeRideFields(Ride ride, RideCreationRequest dto) {
@@ -75,8 +111,6 @@ public class RideServiceImpl implements RideService {
         setFinalCost(ride, dto.getPromoCode());
         ride.setDate(new Date());
         ride.setStatus(Status.NOT_ACCEPTED);
-        ride.setDriverId(getAvailableDriverId(null));
-        ride.setStatus(Status.ACCEPTED);
     }
 
     private Double calculateInitialCost() {
@@ -126,8 +160,14 @@ public class RideServiceImpl implements RideService {
         ride.setRating(rating);
         rideRepository.save(ride);
 
+        changeDriverAvailabilityStatus(dto.getDriverId());
+
         String message = messageSource.getMessage("message.ride.hasBeenFinished", null, locale);
         return new StringResponse(message);
+    }
+
+    private void changeDriverAvailabilityStatus(Long driverId) {
+        kafkaTemplateDriverId.send("change-driver-status", new DriverIdDto(driverId));
     }
 
     public StringResponse finishRide(Long id, PassengerFinishRequest dto) {

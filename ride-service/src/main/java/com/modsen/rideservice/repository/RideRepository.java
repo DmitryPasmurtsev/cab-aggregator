@@ -20,5 +20,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
     Page<Ride> findAllByPassengerId(Long id, Pageable pageable);
 
-    Optional<Ride> findFirstByDriverIdIsNull();
+    List<Ride> findAllByDriverIdIsNull();
+
+    List<Ride> findAllByDriverIdAndStatus(Long id, Status status);
 }

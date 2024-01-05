@@ -1,14 +1,18 @@
-package com.modsen.passengerservice.dto.response;
+package com.modsen.passengerservice.dto.request;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Getter
-@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RatingResponse {
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+public class RatingUpdateDto {
+    Long userId;
     Double rating;
-    Long passengerId;
 }

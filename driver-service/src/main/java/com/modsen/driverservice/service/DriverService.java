@@ -1,19 +1,20 @@
 package com.modsen.driverservice.service;
 
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
+import com.modsen.driverservice.dto.request.RatingUpdateDto;
 import com.modsen.driverservice.dto.response.DriverResponse;
 import com.modsen.driverservice.dto.response.DriversListResponse;
-import com.modsen.driverservice.dto.response.StringResponse;
-import org.springframework.stereotype.Service;
 
 public interface DriverService {
     DriversListResponse getAllDrivers();
+
+    DriversListResponse getBlockedDrivers();
 
     DriversListResponse getAvailableDrivers();
 
     DriverResponse getById(Long id);
 
-    void deleteDriver(Long id);
+    void blockDriver(Long id);
 
     DriverResponse addDriver(DriverCreationRequest dto);
 
@@ -31,7 +32,9 @@ public interface DriverService {
 
     DriversListResponse getAvailableDrivers(String field);
 
-    Double getRatingById(Long id);
-
     void changeAvailabilityStatus(Long id);
+
+    void updateRating(RatingUpdateDto dto);
+
+    void findAvailableDriver();
 }

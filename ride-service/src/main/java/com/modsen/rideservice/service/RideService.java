@@ -4,6 +4,7 @@ import com.modsen.rideservice.dto.request.DriverFinishRequest;
 import com.modsen.rideservice.dto.request.PassengerFinishRequest;
 import com.modsen.rideservice.dto.request.RideCreationRequest;
 import com.modsen.rideservice.dto.request.UserIdRequest;
+import com.modsen.rideservice.dto.response.DriverAvailabilityCheckDto;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
 import com.modsen.rideservice.dto.response.StringResponse;
@@ -26,4 +27,8 @@ public interface RideService {
     StringResponse driverRejectRide(Long id, UserIdRequest dto);
 
     RidesListResponse getList(Long id, Integer offset, Integer page, String field);
+
+    void setDriverToRide(Long driverId);
+
+    DriverAvailabilityCheckDto checkDriverAvailability(Long id);
 }

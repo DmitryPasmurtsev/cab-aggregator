@@ -1,4 +1,4 @@
-package com.modsen.driverservice.config;
+package com.modsen.driverservice.kafka.config;
 
 import com.modsen.driverservice.dto.request.DriverIdDto;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -25,18 +25,19 @@ public class KafkaProducerConfig {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return props;
     }
 
     @Bean
-    public ProducerFactory<String, DriverIdDto> producerFactory() {
+    public ProducerFactory<String, DriverIdDto> producerFactoryDriverIdDto() {
         return new DefaultKafkaProducerFactory<>(producerConfig());
     }
 
     @Bean
     public KafkaTemplate<String, DriverIdDto> kafkaTemplate(
-            ProducerFactory<String, DriverIdDto> producerFactory
+            ProducerFactory<String, DriverIdDto> producerFactoryDriverIdDto
     ) {
-        return new KafkaTemplate<>(producerFactory);
+        return new KafkaTemplate<>(producerFactoryDriverIdDto);
     }
 }

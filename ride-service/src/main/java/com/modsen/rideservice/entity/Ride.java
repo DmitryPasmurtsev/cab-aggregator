@@ -1,5 +1,6 @@
 package com.modsen.rideservice.entity;
 
+import com.modsen.rideservice.enums.PaymentMethod;
 import com.modsen.rideservice.enums.Status;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -50,6 +51,9 @@ public class Ride {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     Status status;
+    @Column(name = "payment_method")
+    @Enumerated(EnumType.STRING)
+    PaymentMethod paymentMethod;
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     Rating rating;

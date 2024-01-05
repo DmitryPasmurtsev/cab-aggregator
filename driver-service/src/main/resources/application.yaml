@@ -14,4 +14,15 @@ spring:
       ddl-auto: none
     show-sql: true
   kafka:
+    consumer:
+      group-id:
+        ride: ride-creation-group
+        status: change-status-group
+        rating: update-driver-rating-group
     bootstrap-servers: localhost:9092
+topic:
+  name:
+    ride: new-ride
+    driver: available-driver
+    status: change-driver-status
+    rating: update-driver-rating

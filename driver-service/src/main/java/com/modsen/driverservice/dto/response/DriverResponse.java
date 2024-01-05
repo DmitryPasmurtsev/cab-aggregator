@@ -17,4 +17,5 @@ public class DriverResponse {
     String phone;
     boolean isAvailable;
     Double rating;
+    boolean isBlocked;
 }

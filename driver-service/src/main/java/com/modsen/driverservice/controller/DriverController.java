@@ -37,6 +37,14 @@ public class DriverController {
         else return driverService.getAllDrivers();
     }
 
+    @GetMapping("/blocked")
+    @Operation(
+            summary = "Getting blocked drivers"
+    )
+    public DriversListResponse getBlockedDrivers() {
+        return driverService.getBlockedDrivers();
+    }
+
     @GetMapping("/available")
     @Operation(
             summary = "Getting available drivers"
@@ -81,24 +89,13 @@ public class DriverController {
     @DeleteMapping("/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
-            summary = "Removing a driver"
+            summary = "Block a driver"
     )
-    public StringResponse deleteDriver(@PathVariable Long id) {
-        driverService.deleteDriver(id);
-        return new StringResponse("Driver with id={" + id + "} has been removed");
+    public void blockDriver(@PathVariable Long id) {
+        driverService.blockDriver(id);
     }
 
-
-    @GetMapping("/{id}/rating")
-    @Operation(
-            summary = "Getting a driver rating"
-    )
-    //этот метод в будущем стоит перенести в микросервис рейтингов
-    public RatingResponse getDriverRating(@PathVariable Long id) {
-        return new RatingResponse(driverService.getRatingById(id), id);
-    }
-
-    @GetMapping("/{id}/status")
+    @PatchMapping("/{id}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Change driver status"

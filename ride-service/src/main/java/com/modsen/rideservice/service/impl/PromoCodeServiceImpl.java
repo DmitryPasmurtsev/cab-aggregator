@@ -59,11 +59,8 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     }
 
     private PromoCode getEntityById(String name) {
-        Optional<PromoCode> promoCode = promoCodeRepository.findById(name);
-        if (promoCode.isPresent()) {
-            return promoCode.get();
-        }
-        throw new NotFoundException("name", "message.promo-code.notFound");
+        return promoCodeRepository.findById(name)
+                .orElseThrow(() -> new NotFoundException("name", "message.promo-code.notFound"));
     }
 
     public PromoCodesListResponse getList(Integer offset, Integer page, String field) {

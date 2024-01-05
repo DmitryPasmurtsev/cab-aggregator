@@ -19,6 +19,10 @@
             <column name="is_available" type="boolean" defaultOnNull="true" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="rating" type="numeric(2,1)"/>
+            <column name="is_blocked" type="boolean" defaultOnNull="true" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 </databaseChangeLog>

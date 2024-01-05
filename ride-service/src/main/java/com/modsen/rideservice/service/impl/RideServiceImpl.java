@@ -17,12 +17,9 @@ import com.modsen.rideservice.exceptions.WrongStatusException;
 import com.modsen.rideservice.repository.RideRepository;
 import com.modsen.rideservice.service.PromoCodeService;
 import com.modsen.rideservice.service.RideService;
-import jakarta.validation.MessageInterpolator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,7 +29,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -56,6 +52,7 @@ public class RideServiceImpl implements RideService {
     public StringResponse deleteRide(Long id) {
         checkExistence(id);
         rideRepository.deleteById(id);
+
         String message = messageSource.getMessage("message.ride.hasBeenRemoved", null, locale);
         return new StringResponse(message);
     }
@@ -88,7 +85,7 @@ public class RideServiceImpl implements RideService {
     }
 
     private void setFinalCost(Ride ride, String promoCodeName) {
-        if (!promoCodeName.isEmpty()) {
+        if (!promoCodeName.isBlank()) {
             Double coefficient = promoCodeService.getById(promoCodeName).getCoefficient();
             ride.setFinalCost(calculateFinalCost(ride.getInitialCost(), coefficient));
         } else {
@@ -97,11 +94,8 @@ public class RideServiceImpl implements RideService {
     }
 
     private Ride getEntityById(Long id) {
-        Optional<Ride> ride = rideRepository.findById(id);
-        if (ride.isPresent()) {
-            return ride.get();
-        }
-        throw new NotFoundException("id", "message.ride.notFound");
+        return rideRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("id", "message.ride.notFound"));
     }
 
     private Long getAvailableDriverId(DriverRejectRequest dto) {

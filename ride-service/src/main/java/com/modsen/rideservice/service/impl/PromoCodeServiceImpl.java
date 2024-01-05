@@ -1,6 +1,7 @@
 package com.modsen.rideservice.service.impl;
 
-import com.modsen.rideservice.dto.request.*;
+import com.modsen.rideservice.dto.request.PromoCodeDto;
+import com.modsen.rideservice.dto.request.PromoCodeUpdateRequest;
 import com.modsen.rideservice.dto.response.PromoCodesListResponse;
 import com.modsen.rideservice.entity.PromoCode;
 import com.modsen.rideservice.exceptions.NotCreatedException;
@@ -15,7 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,11 +59,8 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     }
 
     private PromoCode getEntityById(String name) {
-        Optional<PromoCode> promoCode = promoCodeRepository.findById(name);
-        if (promoCode.isPresent()) {
-            return promoCode.get();
-        }
-        throw new NotFoundException("name", "message.promo-code.notFound");
+        return promoCodeRepository.findById(name)
+                .orElseThrow(() -> new NotFoundException("name", "message.promo-code.notFound"));
     }
 
     public PromoCodesListResponse getList(Integer offset, Integer page, String field) {

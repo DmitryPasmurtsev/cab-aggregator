@@ -194,7 +194,7 @@ public class RideServiceImpl implements RideService {
             } catch (Exception ex) {
                 ride.setPaymentMethod(PaymentMethod.CASH);
                 rideRepository.save(ride);
-                throw new BalanceException("balance", "Passenger has not enough money. Payment method changed to CASH/ Try again");
+                throw new BalanceException("balance", "Passenger has not enough money. Payment method changed to CASH. Try again");
             }
         }
 

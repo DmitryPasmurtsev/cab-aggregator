@@ -16,7 +16,7 @@ public class CustomRetryer implements Retryer {
 
     @Override
     public Retryer clone() {
-        return new CustomRetryer();
+        return new Retryer.Default();
     }
 
 }

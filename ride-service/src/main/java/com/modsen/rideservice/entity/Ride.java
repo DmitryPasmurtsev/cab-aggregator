@@ -54,6 +54,7 @@ public class Ride {
     @Column(name = "payment_method")
     @Enumerated(EnumType.STRING)
     PaymentMethod paymentMethod;
+
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     Rating rating;

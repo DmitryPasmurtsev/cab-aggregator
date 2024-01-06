@@ -12,6 +12,7 @@ public class ClientConfiguration {
     public ErrorDecoder errorDecoder() {
         return new CustomErrorDecoder();
     }
+
     @Bean
     public Retryer retryer() {
         return new CustomRetryer();

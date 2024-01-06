@@ -23,6 +23,7 @@
         <liquibase.version>4.25.0</liquibase.version>
         <swagger.version>2.2.0</swagger.version>
         <kafka.version>3.1.1</kafka.version>
+        <feign.version>4.1.0</feign.version>
     </properties>
     <dependencies>
         <dependency>
@@ -73,16 +74,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <version>4.1.0</version>
+            <version>${feign.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-circuitbreaker-resilience4j</artifactId>
-            <version>3.1.0</version>
         </dependency>
     </dependencies>
 </project>

@@ -43,6 +43,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
         PromoCode promoCode = toModel(dto);
         promoCodeRepository.save(promoCode);
+
         return dto;
     }
 
@@ -55,6 +56,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeDto update(String name, PromoCodeUpdateRequest dto) {
         PromoCode promoCode = getEntityById(name);
         promoCode.setCoefficient(dto.getCoefficient());
+
         return toDto(promoCodeRepository.save(promoCode));
     }
 

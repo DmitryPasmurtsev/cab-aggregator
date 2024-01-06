@@ -13,3 +13,15 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
+  kafka:
+    consumer:
+      group-id:
+        driver: available-driver-group
+    bootstrap-servers: localhost:9092
+topic:
+  name:
+    ride: new-ride
+    driver: available-driver
+    status: change-driver-status
+    driver-rating: update-driver-rating
+    passenger-rating: update-passenger-rating

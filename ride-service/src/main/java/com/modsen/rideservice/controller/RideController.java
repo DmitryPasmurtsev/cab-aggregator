@@ -4,6 +4,7 @@ import com.modsen.rideservice.dto.request.DriverFinishRequest;
 import com.modsen.rideservice.dto.request.PassengerFinishRequest;
 import com.modsen.rideservice.dto.request.RideCreationRequest;
 import com.modsen.rideservice.dto.request.UserIdRequest;
+import com.modsen.rideservice.dto.response.DriverAvailabilityCheckDto;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
 import com.modsen.rideservice.dto.response.StringResponse;
@@ -42,6 +43,14 @@ public class RideController {
             @RequestParam(required = false) String field,
             @PathVariable Long id) {
         return rideService.getList(id, offset, page, field);
+    }
+
+    @GetMapping("/driver/{id}/checkAvailability")
+    @Operation(
+            summary = "Check driver availability"
+    )
+    public DriverAvailabilityCheckDto checkDriverAvailability(@PathVariable Long id) {
+        return rideService.checkDriverAvailability(id);
     }
 
     @GetMapping("/{id}")

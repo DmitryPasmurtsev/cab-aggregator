@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RideRepository extends JpaRepository<Ride, Long> {
@@ -18,4 +19,8 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     List<Ride> findAllByPassengerId(Long id, Sort sort);
 
     Page<Ride> findAllByPassengerId(Long id, Pageable pageable);
+
+    List<Ride> findAllByDriverIdIsNull();
+
+    List<Ride> findAllByDriverIdAndStatus(Long id, Status status);
 }

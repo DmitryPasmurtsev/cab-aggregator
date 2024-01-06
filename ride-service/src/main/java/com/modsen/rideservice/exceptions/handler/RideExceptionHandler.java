@@ -1,13 +1,14 @@
 package com.modsen.rideservice.exceptions.handler;
 
+import com.modsen.rideservice.config.CustomMessageSource;
 import com.modsen.rideservice.exceptions.CustomException;
 import com.modsen.rideservice.exceptions.NoAccessException;
 import com.modsen.rideservice.exceptions.NotCreatedException;
 import com.modsen.rideservice.exceptions.NotFoundException;
 import com.modsen.rideservice.exceptions.WrongStatusException;
 import com.modsen.rideservice.exceptions.response.ExceptionResponse;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,20 +25,20 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RideExceptionHandler {
     private final Locale locale;
-    private final MessageSource messageSource;
+    private final CustomMessageSource messageSource;
     private static final String EXCEPTION_CAUSE_KEY = "cause";
     private static final String EXCEPTION_MESSAGE_KEY = "message";
 
     @ExceptionHandler(value = {NotFoundException.class})
     public ResponseEntity<ExceptionResponse> handleNotFoundException(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(createResponse(ex.getField(), messageSource.getMessage(ex.getMessage(), null, locale)));
+                .body(createResponse(ex.getField(), messageSource.customGetMessage(ex.getMessage(), null, locale)));
     }
 
     @ExceptionHandler(value = {NotCreatedException.class, WrongStatusException.class, NoAccessException.class})
     public ResponseEntity<ExceptionResponse> handleNotCreateWrongStatusNoAccessException(CustomException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(createResponse(ex.getField(), messageSource.getMessage(ex.getMessage(), null, locale)));
+                .body(createResponse(ex.getField(), messageSource.customGetMessage(ex.getMessage(), null, locale)));
     }
 
     @ExceptionHandler(value = {PropertyReferenceException.class})
@@ -60,6 +61,12 @@ public class RideExceptionHandler {
         ExceptionResponse response = new ExceptionResponse(responseList);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(response);
+    }
+
+    @ExceptionHandler(value = {FeignException.class})
+    public ResponseEntity<ExceptionResponse> handleFeignException(FeignException feignException) {
+        return ResponseEntity.status(HttpStatus.valueOf(feignException.status()))
+                .body(createResponse("communication", feignException.contentUTF8()));
     }
 
     private ExceptionResponse createResponse(String firstValue, String secondValue) {

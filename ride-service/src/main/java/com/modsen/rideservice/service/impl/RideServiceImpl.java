@@ -1,19 +1,30 @@
 package com.modsen.rideservice.service.impl;
 
 import com.modsen.rideservice.dto.request.DriverFinishRequest;
-import com.modsen.rideservice.dto.request.DriverRejectRequest;
 import com.modsen.rideservice.dto.request.PassengerFinishRequest;
 import com.modsen.rideservice.dto.request.RideCreationRequest;
 import com.modsen.rideservice.dto.request.UserIdRequest;
+import com.modsen.rideservice.dto.response.DriverAvailabilityCheckDto;
 import com.modsen.rideservice.dto.response.RideResponse;
 import com.modsen.rideservice.dto.response.RidesListResponse;
 import com.modsen.rideservice.dto.response.StringResponse;
 import com.modsen.rideservice.entity.Rating;
 import com.modsen.rideservice.entity.Ride;
+import com.modsen.rideservice.enums.PaymentMethod;
 import com.modsen.rideservice.enums.Status;
+import com.modsen.rideservice.exceptions.BalanceException;
 import com.modsen.rideservice.exceptions.NoAccessException;
 import com.modsen.rideservice.exceptions.NotFoundException;
 import com.modsen.rideservice.exceptions.WrongStatusException;
+import com.modsen.rideservice.feign.client.DriverClient;
+import com.modsen.rideservice.feign.client.PassengerClient;
+import com.modsen.rideservice.feign.client.PaymentClient;
+import com.modsen.rideservice.feign.dto.CustomerChargeRequest;
+import com.modsen.rideservice.feign.dto.CustomerRequest;
+import com.modsen.rideservice.feign.dto.PassengerResponse;
+import com.modsen.rideservice.kafka.KafkaDriverStatusProducer;
+import com.modsen.rideservice.kafka.KafkaRatingProducer;
+import com.modsen.rideservice.kafka.KafkaRideProducer;
 import com.modsen.rideservice.repository.RideRepository;
 import com.modsen.rideservice.service.PromoCodeService;
 import com.modsen.rideservice.service.RideService;
@@ -36,17 +47,30 @@ import java.util.Random;
 public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final PromoCodeService promoCodeService;
+    private final KafkaRatingProducer ratingProducer;
     private final ModelMapper modelMapper;
     private final MessageSource messageSource;
     private final Locale locale;
+    private final DriverClient driverClient;
+    private final PassengerClient passengerClient;
+    private final PaymentClient paymentClient;
+    private final KafkaRideProducer rideProducer;
+    private final KafkaDriverStatusProducer driverStatusProducer;
 
 
     private RideResponse toDto(Ride ride) {
-        return modelMapper.map(ride, RideResponse.class);
+        RideResponse rideDto = modelMapper.map(ride, RideResponse.class);
+        if (ride.getDriverId() != null) {
+            rideDto.setDriver(driverClient.getDriverById(ride.getDriverId()));
+        }
+        rideDto.setPassenger(passengerClient.getPassengerById(ride.getPassengerId()));
+        return rideDto;
     }
 
     private Ride toModel(RideCreationRequest dto) {
-        return modelMapper.map(dto, Ride.class);
+        Ride ride = modelMapper.map(dto, Ride.class);
+        ride.setId(null);
+        return ride;
     }
 
     public StringResponse deleteRide(Long id) {
@@ -63,8 +87,42 @@ public class RideServiceImpl implements RideService {
 
     public RideResponse addRide(RideCreationRequest dto) {
         Ride ride = toModel(dto);
+        checkPassengerExistence(dto.getPassengerId());
         initializeRideFields(ride, dto);
-        return toDto(rideRepository.save(ride));
+        ride = rideRepository.save(ride);
+
+        rideProducer.notifyDriversAboutRideCreation();
+
+        checkCustomerExistence(ride.getPassengerId());
+        checkBalance(ride);
+
+        return toDto(ride);
+    }
+
+    private void checkPassengerExistence(Long passengerId) {
+        passengerClient.getPassengerById(passengerId);
+    }
+
+    public void setDriverToRide(Long driverId) {
+        List<Ride> rides = rideRepository.findAllByDriverIdIsNull();
+        if (!rides.isEmpty()) {
+            Ride ride = rides.stream().findFirst().get();
+            ride.setDriverId(driverId);
+            ride.setStatus(Status.ACCEPTED);
+
+            rideRepository.save(ride);
+
+            driverStatusProducer.changeDriverAvailabilityStatus(driverId);
+        }
+    }
+
+    public DriverAvailabilityCheckDto checkDriverAvailability(Long id) {
+        List<Ride> acceptedRides = rideRepository.findAllByDriverIdAndStatus(id, Status.ACCEPTED);
+        List<Ride> startedRides = rideRepository.findAllByDriverIdAndStatus(id, Status.STARTED);
+        if (acceptedRides.size() != 0 || startedRides.size() != 0) {
+            return new DriverAvailabilityCheckDto(false);
+        }
+        return new DriverAvailabilityCheckDto(true);
     }
 
     private void initializeRideFields(Ride ride, RideCreationRequest dto) {
@@ -72,8 +130,6 @@ public class RideServiceImpl implements RideService {
         setFinalCost(ride, dto.getPromoCode());
         ride.setDate(new Date());
         ride.setStatus(Status.NOT_ACCEPTED);
-        ride.setDriverId(getAvailableDriverId(null));
-        ride.setStatus(Status.ACCEPTED);
     }
 
     private Double calculateInitialCost() {
@@ -98,10 +154,30 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new NotFoundException("id", "message.ride.notFound"));
     }
 
-    private Long getAvailableDriverId(DriverRejectRequest dto) {
-        //здесь будет отправка запроса на сервис водителей для получения свободного
-        //временно реализовано рандомное генерирование id водителя
-        return new Random().nextLong(1, 10);
+    private void checkCustomerExistence(Long passengerId) {
+        PassengerResponse passengerResponse = passengerClient.getPassengerById(passengerId);
+        try {
+            paymentClient.findCustomer(passengerId);
+        } catch (NotFoundException e) {
+            CustomerRequest customerRequest = CustomerRequest.builder()
+                    .balance(5000.0)
+                    .phone(passengerResponse.getPhone())
+                    .email(passengerResponse.getEmail())
+                    .name(passengerResponse.getName())
+                    .passengerId(passengerResponse.getId())
+                    .build();
+            paymentClient.createCustomer(customerRequest);
+        }
+    }
+
+    private void checkBalance(Ride ride) {
+        if (ride.getPaymentMethod().equals(PaymentMethod.NO_CASH)) {
+            try {
+                paymentClient.checkCustomersBalance(new CustomerChargeRequest(ride.getFinalCost(), ride.getPassengerId()));
+            } catch (BalanceException e) {
+                ride.setPaymentMethod(PaymentMethod.CASH);
+            }
+        }
     }
 
     public StringResponse finishRide(Long id, DriverFinishRequest dto) {
@@ -112,6 +188,16 @@ public class RideServiceImpl implements RideService {
             throw new WrongStatusException("status", "message.ride.notStarted");
         }
 
+        if (ride.getPaymentMethod().equals(PaymentMethod.NO_CASH)) {
+            try {
+                paymentClient.chargeFromCustomer(new CustomerChargeRequest(ride.getFinalCost(), ride.getPassengerId()));
+            } catch (Exception ex) {
+                ride.setPaymentMethod(PaymentMethod.CASH);
+                rideRepository.save(ride);
+                throw new BalanceException("balance", "Passenger has not enough money. Payment method changed to CASH/ Try again");
+            }
+        }
+
         ride.setStatus(Status.FINISHED);
         Rating rating = Rating.builder()
                 .ride(ride)
@@ -119,6 +205,9 @@ public class RideServiceImpl implements RideService {
                 .build();
         ride.setRating(rating);
         rideRepository.save(ride);
+
+        driverStatusProducer.changeDriverAvailabilityStatus(ride.getDriverId());
+        ratingProducer.updateRatingForPassenger(ride.getPassengerId());
 
         String message = messageSource.getMessage("message.ride.hasBeenFinished", null, locale);
         return new StringResponse(message);
@@ -130,7 +219,9 @@ public class RideServiceImpl implements RideService {
         checkPassengerAccess(ride, dto.getPassengerId());
         if (dto.getRatingToDriver() != null) {
             ride.getRating().setDriverRating(dto.getRatingToDriver());
+            ratingProducer.updateRatingForDriver(ride.getDriverId());
         }
+
         rideRepository.save(ride);
 
         String message = messageSource.getMessage("message.ride.hasBeenFinished", null, locale);
@@ -161,6 +252,10 @@ public class RideServiceImpl implements RideService {
         ride.setStatus(Status.REJECTED);
         rideRepository.save(ride);
 
+        if (ride.getDriverId() != null) {
+            driverStatusProducer.changeDriverAvailabilityStatus(ride.getDriverId());
+        }
+
         String message = messageSource.getMessage("message.ride.hasBeenRejected", null, locale);
         return new StringResponse(message);
     }
@@ -172,9 +267,11 @@ public class RideServiceImpl implements RideService {
         checkPossibilityToReject(ride);
 
         ride.setStatus(Status.NOT_ACCEPTED);
-        ride.setDriverId(getAvailableDriverId(null));
-        ride.setStatus(Status.ACCEPTED);
+        ride.setDriverId(null);
         rideRepository.save(ride);
+
+        rideProducer.notifyDriversAboutRideCreation();
+        driverStatusProducer.changeDriverAvailabilityStatus(dto.getUserId());
 
         String message = messageSource.getMessage("message.ride.hasBeenRejected", null, locale);
         return new StringResponse(message);

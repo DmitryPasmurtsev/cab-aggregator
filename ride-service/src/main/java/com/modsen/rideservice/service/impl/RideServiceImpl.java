@@ -278,7 +278,7 @@ public class RideServiceImpl implements RideService {
     }
 
     private void checkPossibilityToReject(Ride ride) {
-        if (ride.getStatus().getValue() > Status.ACCEPTED.getValue()) {
+        if (ride.getStatus().ordinal() > Status.ACCEPTED.ordinal()) {
             throw new WrongStatusException("status", "message.ride.notRejected");
         }
     }

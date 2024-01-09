@@ -29,4 +29,8 @@ public class Driver {
     String phone;
     @Column(name = "is_available")
     boolean isAvailable;
+    @Column(name = "rating", columnDefinition = "numeric(2,1)")
+    Double rating;
+    @Column(name = "is_blocked")
+    boolean isBlocked;
 }

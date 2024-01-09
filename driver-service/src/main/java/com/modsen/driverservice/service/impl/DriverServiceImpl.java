@@ -1,14 +1,19 @@
 package com.modsen.driverservice.service.impl;
 
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
+import com.modsen.driverservice.dto.request.RatingUpdateDto;
 import com.modsen.driverservice.dto.response.DriverResponse;
 import com.modsen.driverservice.dto.response.DriversListResponse;
 import com.modsen.driverservice.entity.Driver;
+import com.modsen.driverservice.exceptions.NotAvailableDriverException;
 import com.modsen.driverservice.exceptions.NotCreatedException;
 import com.modsen.driverservice.exceptions.NotFoundException;
+import com.modsen.driverservice.feign.client.DriverAvailabilityClient;
+import com.modsen.driverservice.feign.dto.DriverAvailabilityCheckDto;
+import com.modsen.driverservice.kafka.AvailableDriverProducer;
 import com.modsen.driverservice.repository.DriverRepository;
 import com.modsen.driverservice.service.DriverService;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,18 +23,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
     private final ModelMapper modelMapper;
+    private final DriverAvailabilityClient driverAvailabilityClient;
+    private final AvailableDriverProducer availableDriverProducer;
 
     private DriverResponse toDTO(Driver driver) {
-        DriverResponse dto = modelMapper.map(driver, DriverResponse.class);
-        dto.setRating(getRatingById(dto.getId()));
-        return dto;
+        return modelMapper.map(driver, DriverResponse.class);
     }
 
     private Driver toModel(DriverCreationRequest driver) {
@@ -37,7 +41,19 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers() {
-        List<DriverResponse> drivers = driverRepository.findAll()
+        List<DriverResponse> drivers = driverRepository.findAllByIsBlockedIsFalse()
+                .stream()
+                .map(this::toDTO)
+                .toList();
+        return DriversListResponse.builder()
+                .drivers(drivers)
+                .size(drivers.size())
+                .total(drivers.size())
+                .build();
+    }
+
+    public DriversListResponse getBlockedDrivers() {
+        List<DriverResponse> drivers = driverRepository.findAllByIsBlockedIsTrue()
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -49,7 +65,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers() {
-        List<DriverResponse> drivers = driverRepository.findAllByIsAvailableIsTrue()
+        List<DriverResponse> drivers = driverRepository.findAllByIsAvailableIsTrueAndIsBlockedIsFalse()
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -69,9 +85,19 @@ public class DriverServiceImpl implements DriverService {
                 .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + id + "} not found"));
     }
 
-    public void deleteDriver(Long id) {
-        checkExistence(id);
-        driverRepository.deleteById(id);
+    private Driver getNotBlockedEntityById(Long id) {
+        return driverRepository.findByIdAndIsBlockedIsFalse(id)
+                .orElseThrow(() -> new NotFoundException("id", "Driver with id={" + id + "} not found"));
+    }
+
+    public void blockDriver(Long id) {
+        Driver driver = getNotBlockedEntityById(id);
+        checkPossibilityToChangeStatus(id);
+
+        driver.setBlocked(true);
+        driver.setAvailable(false);
+
+        driverRepository.save(driver);
     }
 
     public DriverResponse addDriver(DriverCreationRequest dto) {
@@ -80,27 +106,28 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriverResponse updateDriver(Long id, DriverCreationRequest dto) {
-        checkExistence(id);
-        Driver driver = getEntityById(id);
+        Driver driver = getNotBlockedEntityById(id);
         checkConstraints(id, dto);
+
         driver.setName(dto.getName());
         driver.setSurname(dto.getSurname());
         driver.setPhone(dto.getPhone());
+
         return toDTO(driverRepository.save(driver));
     }
 
     private void checkConstraints(Long id, DriverCreationRequest dto) {
-        Optional<Driver> passengerByPhone = getEntityByPhone(dto.getPhone());
+        Optional<Driver> passengerByPhone = getNotBlockedEntityByPhone(dto.getPhone());
         if (passengerByPhone.isPresent() && !Objects.equals(passengerByPhone.get().getId(), id))
             throw new NotCreatedException("phone", "Driver with phone={" + dto.getPhone() + "} is already exists");
     }
 
-    private Optional<Driver> getEntityByPhone(String phone) {
-        return driverRepository.findPassengerByPhone(phone);
+    private Optional<Driver> getNotBlockedEntityByPhone(String phone) {
+        return driverRepository.findDriverByPhoneAndIsBlockedIsFalse(phone);
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page, String field) {
-        Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset)
+        Page<DriverResponse> responsePage = driverRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, offset)
                         .withSort(Sort.by(field)))
                 .map(this::toDTO);
         return DriversListResponse.builder()
@@ -113,7 +140,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers(Integer offset, Integer page) {
-        Page<DriverResponse> responsePage = driverRepository.findAll(PageRequest.of(page, offset))
+        Page<DriverResponse> responsePage = driverRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, offset))
                 .map(this::toDTO);
         return DriversListResponse.builder()
                 .drivers(responsePage.getContent())
@@ -124,7 +151,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAllDrivers(String field) {
-        List<DriverResponse> responseList = driverRepository.findAll(Sort.by(field))
+        List<DriverResponse> responseList = driverRepository.findAllByIsBlockedIsFalse(Sort.by(field))
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -136,7 +163,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers(Integer offset, Integer page, String field) {
-        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset)
+        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrueAndIsBlockedIsFalse(PageRequest.of(page, offset)
                         .withSort(Sort.by(field)))
                 .map(this::toDTO);
         return DriversListResponse.builder()
@@ -149,7 +176,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers(Integer offset, Integer page) {
-        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrue(PageRequest.of(page, offset))
+        Page<DriverResponse> responsePage = driverRepository.findAllByIsAvailableIsTrueAndIsBlockedIsFalse(PageRequest.of(page, offset))
                 .map(this::toDTO);
         return DriversListResponse.builder()
                 .drivers(responsePage.getContent())
@@ -160,7 +187,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriversListResponse getAvailableDrivers(String field) {
-        List<DriverResponse> responseList = driverRepository.findAllByIsAvailableIsTrue(Sort.by(field))
+        List<DriverResponse> responseList = driverRepository.findAllByIsAvailableIsTrueAndIsBlockedIsFalse(Sort.by(field))
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -171,23 +198,34 @@ public class DriverServiceImpl implements DriverService {
                 .build();
     }
 
-    public Double getRatingById(Long id) {
-        checkExistence(id);
-        // в будущем здесь будет обращение к сервису рейтингов для получения рейтинга пассажира
-        double rating = new Random().nextDouble(1, 5);
-        rating = Math.round(rating * 10) / 10.0;
-        return rating;
-    }
+    public void changeAvailabilityStatus(Long id) {
+        Driver driver = getNotBlockedEntityById(id);
 
-    public boolean changeAvailabilityStatus(Long id) {
-        Driver driver = getEntityById(id);
+        if (!driver.isAvailable()) {
+            checkPossibilityToChangeStatus(id);
+        } else {
+            availableDriverProducer.notifyDriverAvailability(id);
+        }
         driver.setAvailable(!driver.isAvailable());
+
         driverRepository.save(driver);
-        return driver.isAvailable();
     }
 
-    private void checkExistence(Long id) {
-        if (!driverRepository.existsById(id))
-            throw new NotFoundException("id", "Driver with id={" + id + "} not found");
+    public void findAvailableDriver() {
+        Optional<Driver> driverOptional = driverRepository.findFirstByIsAvailableIsTrueAndIsBlockedIsFalse();
+        driverOptional.ifPresent(driver -> availableDriverProducer.notifyDriverAvailability(driver.getId()));
+    }
+
+    private void checkPossibilityToChangeStatus(Long id) {
+        DriverAvailabilityCheckDto dto = driverAvailabilityClient.checkAvailability(id);
+        if (!dto.isAvailable()) {
+            throw new NotAvailableDriverException("Not finished ride", "Driver has not finished ride");
+        }
+    }
+
+    public void updateRating(RatingUpdateDto dto) {
+        Driver driver = getEntityById(dto.getUserId());
+        driver.setRating(dto.getRating());
+        driverRepository.save(driver);
     }
 }

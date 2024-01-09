@@ -3,7 +3,6 @@ package com.modsen.passengerservice.controller;
 import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
 import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
-import com.modsen.passengerservice.dto.response.RatingResponse;
 import com.modsen.passengerservice.service.PassengerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +39,14 @@ public class PassengerController {
         return passengerService.getPassengersList(offset, page, field);
     }
 
+    @GetMapping("/blocked")
+    @Operation(
+            summary = "Get blocked passengers"
+    )
+    public PassengersListResponse getBlockedPassengers() {
+        return passengerService.getBlockedPassengersList();
+    }
+
     @GetMapping("/{id}")
     @Operation(
             summary = "Get passenger by id"
@@ -68,18 +75,9 @@ public class PassengerController {
     @DeleteMapping("/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
-            summary = "Remove passenger"
+            summary = "Block passenger"
     )
     public void deletePassenger(@PathVariable Long id) {
-        passengerService.deletePassenger(id);
-    }
-
-    @GetMapping("/{id}/rating")
-    @Operation(
-            summary = "Get passenger's rating"
-    )
-    //этот метод в будущем стоит перенести в микросервис рейтингов
-    public RatingResponse getPassengerRating(@PathVariable Long id) {
-        return new RatingResponse(passengerService.getRatingById(id), id);
+        passengerService.blockPassenger(id);
     }
 }

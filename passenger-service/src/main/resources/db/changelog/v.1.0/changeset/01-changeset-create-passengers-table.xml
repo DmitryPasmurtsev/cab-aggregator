@@ -20,6 +20,10 @@
             <column name="email" type="varchar(40)">
                 <constraints nullable="false" unique="true"/>
             </column>
+            <column name="rating" type="numeric(2,1)"/>
+            <column name="is_blocked" type="boolean" defaultOnNull="true" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 

@@ -18,5 +18,7 @@ public interface PaymentService {
 
     BalanceResponse getBalance() throws StripeException;
 
-    ChargeResponse chargeFromCustomer(CustomerChargeRequest request) throws StripeException;
+    void chargeFromCustomer(CustomerChargeRequest request) throws StripeException;
+
+    void checkCustomersBalance(CustomerChargeRequest request) throws StripeException;
 }

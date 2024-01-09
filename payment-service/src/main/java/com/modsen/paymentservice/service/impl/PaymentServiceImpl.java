@@ -4,19 +4,26 @@ import com.modsen.paymentservice.dto.request.CardRequest;
 import com.modsen.paymentservice.dto.request.ChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerRequest;
-import com.modsen.paymentservice.dto.response.*;
+import com.modsen.paymentservice.dto.response.BalanceResponse;
+import com.modsen.paymentservice.dto.response.CustomerResponse;
+import com.modsen.paymentservice.dto.response.StringResponse;
 import com.modsen.paymentservice.entity.User;
+import com.modsen.paymentservice.exceptions.BalanceException;
 import com.modsen.paymentservice.exceptions.NotCreatedException;
 import com.modsen.paymentservice.exceptions.NotFoundException;
 import com.modsen.paymentservice.repository.CustomerRepository;
 import com.modsen.paymentservice.service.PaymentService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.*;
+import com.stripe.model.Balance;
+import com.stripe.model.Charge;
+import com.stripe.model.Customer;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.Token;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerUpdateParams;
 import com.stripe.param.PaymentIntentConfirmParams;
-import com.stripe.param.PaymentSourceCollectionCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,7 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
         Stripe.apiKey = SECRET_KEY;
         Map<String, Object> params = new HashMap<>();
         params.put("amount", request.getAmount() * 100);
-        params.put("currency", "usd");
+        params.put("currency", "byn");
         params.put("source", request.getCardToken());
         Charge charge = Charge.create(params);
         String message = "Payment successful. ID: " + charge.getId();
@@ -98,7 +105,7 @@ public class PaymentServiceImpl implements PaymentService {
         Map<String, Object> paymentMethodParams = new HashMap<>();
         paymentMethodParams.put("type", "card");
         Map<String, Object> cardParams = new HashMap<>();
-        cardParams.put("token", "tok_visa"); // здесь "tok_visa" - это пример токена тестирования для карты Visa
+        cardParams.put("token", "tok_visa");
         paymentMethodParams.put("card", cardParams);
         PaymentMethod paymentMethod = PaymentMethod.create(paymentMethodParams);
         Map<String, Object> attachParams = new HashMap<>();
@@ -123,19 +130,19 @@ public class PaymentServiceImpl implements PaymentService {
         Balance balance = Balance.retrieve();
         return BalanceResponse
                 .builder()
-                .amount(balance.getPending().get(0).getAmount()/100.0)
+                .amount(balance.getPending().get(0).getAmount() / 100.0)
                 .currency(balance.getPending().get(0).getCurrency())
                 .build();
     }
 
-    public ChargeResponse chargeFromCustomer(CustomerChargeRequest request) throws StripeException {
+    public void chargeFromCustomer(CustomerChargeRequest request) throws StripeException {
         Stripe.apiKey = SECRET_KEY;
         User user = getEntityById(request.getPassengerId());
         String customerId = user.getCustomerId();
-        checkBalance(customerId, Math.round(request.getAmount()*100));
+        checkBalance(customerId, Math.round(request.getAmount() * 100));
         updateBalance(customerId, Math.round(request.getAmount() * 100));
         Map<String, Object> paymentIntentParams = new HashMap<>();
-        paymentIntentParams.put("amount", request.getAmount() * 100);
+        paymentIntentParams.put("amount", Math.round(request.getAmount() * 100));
         paymentIntentParams.put("currency", "byn");
         paymentIntentParams.put("customer", customerId);
         PaymentIntent intent = PaymentIntent.create(paymentIntentParams);
@@ -145,34 +152,38 @@ public class PaymentServiceImpl implements PaymentService {
                         .setPaymentMethod("pm_card_visa")
                         .build();
         intent.confirm(params);
-        return ChargeResponse.builder()
-                .id(intent.getId())
-                .amount(intent.getAmount()/100.0)
-                .currency(intent.getCurrency()).build();
     }
 
-    private void updateBalance(String customerId,long amount) throws StripeException {
-        Customer customer=Customer.retrieve(customerId);
+    private void updateBalance(String customerId, long amount) throws StripeException {
+        Stripe.apiKey = SECRET_KEY;
+        Customer customer = Customer.retrieve(customerId);
         CustomerUpdateParams params =
                 CustomerUpdateParams.builder()
-                        .setBalance(customer.getBalance()-amount)
+                        .setBalance(customer.getBalance() - amount)
                         .build();
         Stripe.apiKey = SECRET_KEY;
         customer.update(params);
     }
 
-    private void checkBalance(String customerId,long amount) throws StripeException {
+    private void checkBalance(String customerId, long amount) throws StripeException {
+        Stripe.apiKey = SECRET_KEY;
         Customer customer = Customer.retrieve(customerId);
         Long balance = customer.getBalance();
         if (balance < amount)
-            throw new NotCreatedException("balance", "Not enough money in the account");
+            throw new BalanceException("balance", "Not enough money in the account");
     }
 
+    public void checkCustomersBalance(CustomerChargeRequest request) throws StripeException {
+        Stripe.apiKey = SECRET_KEY;
+        User user = getEntityById(request.getPassengerId());
+        Customer customer = Customer.retrieve(user.getCustomerId());
+        Long balance = customer.getBalance();
+        if (balance < request.getAmount())
+            throw new BalanceException("balance", "Not enough money in the account");
+    }
 
     private User getEntityById(Long id) {
-        Optional<User> user = customerRepository.findById(id);
-        if(user.isPresent()) return user.get();
-        throw new NotFoundException("passengerId", "Customer with id={"+id+"} not found");
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("passengerId", "Passenger with id={" + id + "} not found"));
     }
-
 }

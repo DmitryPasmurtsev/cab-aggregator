@@ -1,21 +1,18 @@
-package com.modsen.driverservice.dto.response;
+package com.modsen.driverservice.dto.request;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Getter
-@Setter
-@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DriverResponse {
-    Long id;
-    String name;
-    String surname;
-    String phone;
-    boolean isAvailable;
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+public class RatingUpdateDto {
+    Long userId;
     Double rating;
-    boolean isBlocked;
 }

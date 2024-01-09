@@ -15,4 +15,5 @@ public class PassengerResponse {
     String phone;
     String email;
     Double rating;
+    boolean isBlocked;
 }

@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RatingResponse {
-    Double rating;
+public class DriverAvailabilityCheckDto {
+    boolean isAvailable;
 }

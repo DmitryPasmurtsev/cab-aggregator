@@ -72,9 +72,10 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengerResponse updatePassenger(Long id, PassengerCreationRequest dto) {
+        Passenger passenger = getNotBlockedEntityById(id);
+
         checkConstraints(id, dto);
 
-        Passenger passenger = getNotBlockedEntityById(id);
         passenger.setName(dto.getName());
         passenger.setSurname(dto.getSurname());
         passenger.setEmail(dto.getEmail());
@@ -102,8 +103,8 @@ public class PassengerServiceImpl implements PassengerService {
         return passengerRepository.findPassengerByPhoneAndIsBlockedIsFalse(phone);
     }
 
-    private PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field) {
-        Page<PassengerResponse> responsePage = passengerRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, offset)
+    private PassengersListResponse getListWithPaginationAndSort(Integer limit, Integer page, String field) {
+        Page<PassengerResponse> responsePage = passengerRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, limit)
                         .withSort(Sort.by(field)))
                 .map(this::toDto);
         return PassengersListResponse.builder()
@@ -115,8 +116,8 @@ public class PassengerServiceImpl implements PassengerService {
                 .build();
     }
 
-    private PassengersListResponse getListWithPagination(Integer offset, Integer page) {
-        Page<PassengerResponse> responsePage = passengerRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, offset))
+    private PassengersListResponse getListWithPagination(Integer limit, Integer page) {
+        Page<PassengerResponse> responsePage = passengerRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, limit))
                 .map(this::toDto);
         return PassengersListResponse.builder()
                 .passengers(responsePage.getContent())
@@ -135,14 +136,15 @@ public class PassengerServiceImpl implements PassengerService {
                 .passengers(responseList)
                 .size(responseList.size())
                 .sortedByField(field)
+                .total(responseList.size())
                 .build();
     }
 
-    public PassengersListResponse getPassengersList(Integer offset, Integer page, String field) {
-        if (offset != null && page != null && field != null) {
-            return getListWithPaginationAndSort(offset, page, field);
-        } else if (offset != null && page != null) {
-            return getListWithPagination(offset, page);
+    public PassengersListResponse getPassengersList(Integer limit, Integer page, String field) {
+        if (limit != null && page != null && field != null) {
+            return getListWithPaginationAndSort(limit, page, field);
+        } else if (limit != null && page != null) {
+            return getListWithPagination(limit, page);
         } else if (field != null) {
             return getListWithSort(field);
         }

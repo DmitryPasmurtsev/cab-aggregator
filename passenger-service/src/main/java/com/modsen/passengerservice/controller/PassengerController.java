@@ -33,10 +33,10 @@ public class PassengerController {
             summary = "Get all passengers"
     )
     public PassengersListResponse getAllPassengers(
-            @RequestParam(required = false) Integer offset,
+            @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String field) {
-        return passengerService.getPassengersList(offset, page, field);
+        return passengerService.getPassengersList(limit, page, field);
     }
 
     @GetMapping("/blocked")

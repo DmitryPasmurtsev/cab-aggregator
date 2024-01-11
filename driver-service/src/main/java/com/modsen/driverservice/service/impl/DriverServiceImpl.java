@@ -1,5 +1,6 @@
 package com.modsen.driverservice.service.impl;
 
+import com.modsen.driverservice.dto.request.AvailabilityStatusDto;
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
 import com.modsen.driverservice.dto.request.RatingUpdateDto;
 import com.modsen.driverservice.dto.response.DriverResponse;
@@ -198,7 +199,7 @@ public class DriverServiceImpl implements DriverService {
                 .build();
     }
 
-    public void changeAvailabilityStatus(Long id) {
+    public void changeAvailabilityStatus(Long id, AvailabilityStatusDto dto) {
         Driver driver = getNotBlockedEntityById(id);
 
         if (!driver.isAvailable()) {
@@ -206,7 +207,7 @@ public class DriverServiceImpl implements DriverService {
         } else {
             availableDriverProducer.notifyDriverAvailability(id);
         }
-        driver.setAvailable(!driver.isAvailable());
+        driver.setAvailable(dto.isAvailable());
 
         driverRepository.save(driver);
     }

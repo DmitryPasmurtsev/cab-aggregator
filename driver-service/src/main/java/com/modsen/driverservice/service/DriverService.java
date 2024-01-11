@@ -1,5 +1,6 @@
 package com.modsen.driverservice.service;
 
+import com.modsen.driverservice.dto.request.AvailabilityStatusDto;
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
 import com.modsen.driverservice.dto.request.RatingUpdateDto;
 import com.modsen.driverservice.dto.response.DriverResponse;
@@ -32,7 +33,7 @@ public interface DriverService {
 
     DriversListResponse getAvailableDrivers(String field);
 
-    void changeAvailabilityStatus(Long id);
+    void changeAvailabilityStatus(Long id, AvailabilityStatusDto dto);
 
     void updateRating(RatingUpdateDto dto);
 

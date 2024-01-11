@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,12 +71,12 @@ public class PassengerController {
         return passengerService.updatePassenger(id, passengerDTO);
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/block")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Block passenger"
     )
-    public void deletePassenger(@PathVariable Long id) {
+    public void blockPassenger(@PathVariable Long id) {
         passengerService.blockPassenger(id);
     }
 }

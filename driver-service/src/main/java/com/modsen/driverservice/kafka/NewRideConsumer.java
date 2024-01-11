@@ -3,6 +3,7 @@ package com.modsen.driverservice.kafka;
 import com.modsen.driverservice.service.DriverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +16,7 @@ public class NewRideConsumer {
             groupId = "${spring.kafka.consumer.group-id.ride}",
             containerFactory = "kafkaListenerContainerFactoryString"
     )
-    void rideCreationListener() {
+    void rideCreationListener(@Payload String message) {
         driverService.findAvailableDriver();
     }
 }

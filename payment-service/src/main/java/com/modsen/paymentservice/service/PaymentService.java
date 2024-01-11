@@ -4,7 +4,11 @@ import com.modsen.paymentservice.dto.request.CardRequest;
 import com.modsen.paymentservice.dto.request.ChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerRequest;
-import com.modsen.paymentservice.dto.response.*;
+import com.modsen.paymentservice.dto.response.BalanceCheckResponse;
+import com.modsen.paymentservice.dto.response.BalanceResponse;
+import com.modsen.paymentservice.dto.response.ChargeResponse;
+import com.modsen.paymentservice.dto.response.CustomerResponse;
+import com.modsen.paymentservice.dto.response.StringResponse;
 import com.stripe.exception.StripeException;
 
 public interface PaymentService {
@@ -18,7 +22,7 @@ public interface PaymentService {
 
     BalanceResponse getBalance() throws StripeException;
 
-    void chargeFromCustomer(CustomerChargeRequest request) throws StripeException;
+    ChargeResponse chargeFromCustomer(CustomerChargeRequest request) throws StripeException;
 
-    void checkCustomersBalance(CustomerChargeRequest request) throws StripeException;
+    BalanceCheckResponse checkCustomersBalance(CustomerChargeRequest request) throws StripeException;
 }

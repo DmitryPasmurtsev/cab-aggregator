@@ -1,5 +1,6 @@
 package com.modsen.driverservice.controller;
 
+import com.modsen.driverservice.dto.request.AvailabilityStatusDto;
 import com.modsen.driverservice.dto.request.DriverCreationRequest;
 import com.modsen.driverservice.dto.response.DriverResponse;
 import com.modsen.driverservice.dto.response.DriversListResponse;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -94,7 +94,7 @@ public class DriverController {
         return driverService.updateDriver(id, driverDTO);
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/block")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Block a driver"
@@ -108,7 +108,7 @@ public class DriverController {
     @Operation(
             summary = "Change driver status"
     )
-    public void changeAvailability(@PathVariable Long id) {
-        driverService.changeAvailabilityStatus(id);
+    public void changeAvailability(@PathVariable Long id, @Valid @RequestBody AvailabilityStatusDto dto) {
+        driverService.changeAvailabilityStatus(id, dto);
     }
 }

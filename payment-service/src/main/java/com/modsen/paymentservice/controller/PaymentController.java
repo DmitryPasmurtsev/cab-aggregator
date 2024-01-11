@@ -4,7 +4,9 @@ import com.modsen.paymentservice.dto.request.CardRequest;
 import com.modsen.paymentservice.dto.request.ChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerRequest;
+import com.modsen.paymentservice.dto.response.BalanceCheckResponse;
 import com.modsen.paymentservice.dto.response.BalanceResponse;
+import com.modsen.paymentservice.dto.response.ChargeResponse;
 import com.modsen.paymentservice.dto.response.CustomerResponse;
 import com.modsen.paymentservice.dto.response.StringResponse;
 import com.modsen.paymentservice.service.PaymentService;
@@ -54,12 +56,12 @@ public class PaymentController {
     }
 
     @PostMapping("/customers/checkBalance")
-    public void checkBalance(@RequestBody CustomerChargeRequest dto) throws StripeException {
-        paymentService.checkCustomersBalance(dto);
+    public BalanceCheckResponse checkBalance(@RequestBody CustomerChargeRequest dto) throws StripeException {
+        return paymentService.checkCustomersBalance(dto);
     }
 
     @PostMapping("/customers/charge")
-    public void chargeFromCustomer(@RequestBody @Valid CustomerChargeRequest request) throws StripeException {
-        paymentService.chargeFromCustomer(request);
+    public ChargeResponse chargeFromCustomer(@RequestBody @Valid CustomerChargeRequest dto) throws StripeException {
+        return paymentService.chargeFromCustomer(dto);
     }
 }

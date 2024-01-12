@@ -28,11 +28,11 @@ import static com.modsen.passengerservice.util.TestUtils.DEFAULT_PHONE;
 import static com.modsen.passengerservice.util.TestUtils.INVALID_ORDER_BY;
 import static com.modsen.passengerservice.util.TestUtils.INVALID_PAGE;
 import static com.modsen.passengerservice.util.TestUtils.INVALID_SIZE;
-import static com.modsen.passengerservice.util.TestUtils.NEW_EMAIL;
 import static com.modsen.passengerservice.util.TestUtils.NEW_NAME;
-import static com.modsen.passengerservice.util.TestUtils.NEW_PHONE;
 import static com.modsen.passengerservice.util.TestUtils.NEW_RATING;
 import static com.modsen.passengerservice.util.TestUtils.NEW_SURNAME;
+import static com.modsen.passengerservice.util.TestUtils.UNIQUE_EMAIL;
+import static com.modsen.passengerservice.util.TestUtils.UNIQUE_PHONE;
 import static com.modsen.passengerservice.util.TestUtils.VALID_ORDER_BY;
 import static com.modsen.passengerservice.util.TestUtils.VALID_PAGE;
 import static com.modsen.passengerservice.util.TestUtils.VALID_SIZE;
@@ -341,8 +341,8 @@ class PassengerServiceImplTest {
         assertThat(result).isNotNull();
         assertEquals(NEW_NAME, passengerEntity.getName());
         assertEquals(NEW_SURNAME, passengerEntity.getSurname());
-        assertEquals(NEW_EMAIL, passengerEntity.getEmail());
-        assertEquals(NEW_PHONE, passengerEntity.getPhone());
+        assertEquals(UNIQUE_EMAIL, passengerEntity.getEmail());
+        assertEquals(UNIQUE_PHONE, passengerEntity.getPhone());
     }
 
     @Test
@@ -378,8 +378,8 @@ class PassengerServiceImplTest {
         assertThat(result).isNotNull();
         assertEquals(NEW_NAME, passengerEntity.getName());
         assertEquals(NEW_SURNAME, passengerEntity.getSurname());
-        assertEquals(NEW_EMAIL, passengerEntity.getEmail());
-        assertEquals(NEW_PHONE, passengerEntity.getPhone());
+        assertEquals(UNIQUE_EMAIL, passengerEntity.getEmail());
+        assertEquals(UNIQUE_PHONE, passengerEntity.getPhone());
     }
 
     @Test

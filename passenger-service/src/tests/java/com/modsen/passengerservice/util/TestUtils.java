@@ -27,6 +27,10 @@ public class TestUtils {
     public static final Double NEW_RATING = 5.0;
     public static final String NEW_EMAIL = "222@gmail.com";
     public static final String NEW_PHONE = "80291237567";
+    public static final String UNIQUE_EMAIL = "333@gmail.com";
+    public static final String UNIQUE_PHONE = "80441237567";
+    public static final String INVALID_EMAIL = "444";
+    public static final String INVALID_PHONE = "qwerty";
     public static final int VALID_PAGE = 0;
     public static final int VALID_SIZE = 10;
     public static final int VALID_TOTAL = 2;
@@ -36,6 +40,18 @@ public class TestUtils {
     public static final String VALID_ORDER_BY = "id";
     public static final boolean NOT_BLOCKED = false;
     public static final boolean BLOCKED = true;
+
+    public static final String PASSENGER_NAME_NOT_EMPTY = "validation.passenger.name.notEmpty";
+    public static final String PASSENGER_SURNAME_NOT_EMPTY = "validation.passenger.surname.notEmpty";
+    public static final String PASSENGER_PHONE_NOT_EMPTY = "validation.passenger.phone.notEmpty";
+    public static final String PASSENGER_EMAIL_NOT_EMPTY = "validation.passenger.email.notEmpty";
+    public static final String PASSENGER_PHONE_NOT_VALID = "validation.passenger.phone.notValid";
+    public static final String PASSENGER_EMAIL_NOT_VALID = "validation.passenger.email.notValid";
+    public static final String PASSENGER_ID_NOT_FOUND = "message.passenger.id.notFound";
+    public static final String PASSENGER_EMAIL_ALREADY_EXISTS = "message.passenger.email.alreadyExists";
+    public static final String PASSENGER_PHONE_ALREADY_EXISTS = "message.passenger.phone.alreadyExists";
+    public static final String PASSENGER_IS_BLOCKED = "validation.passenger.isBlocked";
+
 
     public static Passenger getDefaultPassenger() {
         return Passenger.builder()
@@ -162,11 +178,45 @@ public class TestUtils {
                 .build();
     }
 
-    public static PassengerCreationRequest getDefaultPassengerRequestForUpdate() {
+    public static PassengerCreationRequest getSecondPassengerCreationRequest() {
         return PassengerCreationRequest.builder()
                 .name(NEW_NAME)
                 .surname(NEW_SURNAME)
                 .email(NEW_EMAIL)
+                .phone(NEW_PHONE)
+                .build();
+    }
+
+    public static PassengerCreationRequest getNotValidPassengerCreationRequest() {
+        return PassengerCreationRequest.builder()
+                .email(INVALID_EMAIL)
+                .phone(INVALID_PHONE)
+                .build();
+    }
+
+    public static PassengerCreationRequest getDefaultPassengerRequestForUpdate() {
+        return PassengerCreationRequest.builder()
+                .name(NEW_NAME)
+                .surname(NEW_SURNAME)
+                .email(UNIQUE_EMAIL)
+                .phone(UNIQUE_PHONE)
+                .build();
+    }
+
+    public static PassengerCreationRequest getNotUniqueEmailPassengerRequest() {
+        return PassengerCreationRequest.builder()
+                .name(NEW_NAME)
+                .surname(NEW_SURNAME)
+                .email(NEW_EMAIL)
+                .phone(UNIQUE_PHONE)
+                .build();
+    }
+
+    public static PassengerCreationRequest getNotUniquePhonePassengerRequest() {
+        return PassengerCreationRequest.builder()
+                .name(NEW_NAME)
+                .surname(NEW_SURNAME)
+                .email(UNIQUE_EMAIL)
                 .phone(NEW_PHONE)
                 .build();
     }
@@ -176,8 +226,8 @@ public class TestUtils {
                 .id(DEFAULT_ID)
                 .name(NEW_NAME)
                 .surname(NEW_SURNAME)
-                .email(NEW_EMAIL)
-                .phone(NEW_PHONE)
+                .email(UNIQUE_EMAIL)
+                .phone(UNIQUE_PHONE)
                 .build();
     }
 }

@@ -21,36 +21,7 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Optional;
 
-import static com.modsen.passengerservice.util.TestUtils.BLOCKED;
-import static com.modsen.passengerservice.util.TestUtils.DEFAULT_EMAIL;
-import static com.modsen.passengerservice.util.TestUtils.DEFAULT_ID;
-import static com.modsen.passengerservice.util.TestUtils.DEFAULT_PHONE;
-import static com.modsen.passengerservice.util.TestUtils.INVALID_ORDER_BY;
-import static com.modsen.passengerservice.util.TestUtils.INVALID_PAGE;
-import static com.modsen.passengerservice.util.TestUtils.INVALID_SIZE;
-import static com.modsen.passengerservice.util.TestUtils.NEW_NAME;
-import static com.modsen.passengerservice.util.TestUtils.NEW_RATING;
-import static com.modsen.passengerservice.util.TestUtils.NEW_SURNAME;
-import static com.modsen.passengerservice.util.TestUtils.UNIQUE_EMAIL;
-import static com.modsen.passengerservice.util.TestUtils.UNIQUE_PHONE;
-import static com.modsen.passengerservice.util.TestUtils.VALID_ORDER_BY;
-import static com.modsen.passengerservice.util.TestUtils.VALID_PAGE;
-import static com.modsen.passengerservice.util.TestUtils.VALID_SIZE;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassenger;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengerCreationRequest;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengerRequestForUpdate;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengerResponse;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengersListResponse;
-import static com.modsen.passengerservice.util.TestUtils.getEntityList;
-import static com.modsen.passengerservice.util.TestUtils.getEntityPage;
-import static com.modsen.passengerservice.util.TestUtils.getNotSavedPassengerEntity;
-import static com.modsen.passengerservice.util.TestUtils.getPassengerResponsesList;
-import static com.modsen.passengerservice.util.TestUtils.getPassengersListResponseWithPagination;
-import static com.modsen.passengerservice.util.TestUtils.getPassengersListResponseWithSort;
-import static com.modsen.passengerservice.util.TestUtils.getPassengersListResponseWithSortAndPagination;
-import static com.modsen.passengerservice.util.TestUtils.getRatingUpdateDto;
-import static com.modsen.passengerservice.util.TestUtils.getSecondPassenger;
-import static com.modsen.passengerservice.util.TestUtils.getUpdatedPassengerResponse;
+import static com.modsen.passengerservice.util.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -311,7 +282,7 @@ class PassengerServiceImplTest {
     @Test
     void updatePassengerWhenPassengerExistsAndDataIsUnique() {
         Passenger passengerEntity = getDefaultPassenger();
-        PassengerCreationRequest request = getDefaultPassengerRequestForUpdate();
+        PassengerCreationRequest request = getPassengerRequestWithUniqueData();
         PassengerResponse response = getUpdatedPassengerResponse();
 
         doReturn(Optional.of(passengerEntity))
@@ -348,7 +319,7 @@ class PassengerServiceImplTest {
     @Test
     void updatePassengerWhenEmailAndPhoneNotChanged() {
         Passenger passengerEntity = getDefaultPassenger();
-        PassengerCreationRequest request = getDefaultPassengerRequestForUpdate();
+        PassengerCreationRequest request = getPassengerRequestWithUniqueData();
         PassengerResponse response = getUpdatedPassengerResponse();
 
         doReturn(Optional.of(passengerEntity))

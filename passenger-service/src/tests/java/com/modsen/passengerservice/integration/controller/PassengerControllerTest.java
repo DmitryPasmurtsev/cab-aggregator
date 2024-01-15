@@ -1,9 +1,11 @@
-package com.modsen.passengerservice.controller;
+package com.modsen.passengerservice.integration.controller;
 
 import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
 import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
+import com.modsen.passengerservice.entity.Passenger;
 import com.modsen.passengerservice.exceptions.response.ExceptionResponse;
+import com.modsen.passengerservice.integration.BaseIntegrationTest;
 import com.modsen.passengerservice.repository.PassengerRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -13,58 +15,27 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.List;
 import java.util.Locale;
 
-import static com.modsen.passengerservice.util.TestUtils.BLOCKED;
-import static com.modsen.passengerservice.util.TestUtils.DEFAULT_ID;
-import static com.modsen.passengerservice.util.TestUtils.NEW_ID;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_EMAIL_ALREADY_EXISTS;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_EMAIL_NOT_VALID;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_ID_NOT_FOUND;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_NAME_NOT_EMPTY;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_PHONE_ALREADY_EXISTS;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_PHONE_NOT_VALID;
-import static com.modsen.passengerservice.util.TestUtils.PASSENGER_SURNAME_NOT_EMPTY;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassenger;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengerRequestForUpdate;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengerResponse;
-import static com.modsen.passengerservice.util.TestUtils.getDefaultPassengersListResponse;
-import static com.modsen.passengerservice.util.TestUtils.getNotUniqueEmailPassengerRequest;
-import static com.modsen.passengerservice.util.TestUtils.getNotUniquePhonePassengerRequest;
-import static com.modsen.passengerservice.util.TestUtils.getNotValidPassengerCreationRequest;
-import static com.modsen.passengerservice.util.TestUtils.getPassengerResponsesList;
-import static com.modsen.passengerservice.util.TestUtils.getSecondPassenger;
-import static com.modsen.passengerservice.util.TestUtils.getSecondPassengerCreationRequest;
-import static com.modsen.passengerservice.util.TestUtils.getSecondPassengerResponse;
-import static com.modsen.passengerservice.util.TestUtils.getUpdatedPassengerResponse;
+import static com.modsen.passengerservice.util.TestUtils.*;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.post;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class PassengerControllerTest {
+class PassengerControllerTest extends BaseIntegrationTest {
 
     @LocalServerPort
     private Integer port;
-
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            "postgres:15-alpine"
-    );
 
     @BeforeAll
     static void beforeAll() {
@@ -74,13 +45,6 @@ class PassengerControllerTest {
     @AfterAll
     static void afterAll() {
         postgres.stop();
-    }
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
     }
 
     private final PassengerRepository passengerRepository;
@@ -93,7 +57,6 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(1)
     void getPassengerById_shouldReturnPassengerResponse_whenPassengerExists() {
         passengerRepository.save(getDefaultPassenger());
         PassengerResponse expected = getDefaultPassengerResponse();
@@ -110,9 +73,8 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(2)
     void getPassengerById_shouldReturnExceptionResponse_whenPassengerNotFound() {
-        ExceptionResponse actual = get("/" + NEW_ID)
+        ExceptionResponse actual = get("/" + THIRD_ID)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.NOT_FOUND.value())
@@ -124,7 +86,6 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(2)
     void addPassenger_shouldReturnExceptionResponse_whenRequestNotValid() {
         PassengerCreationRequest creationRequest = getNotValidPassengerCreationRequest();
 
@@ -157,10 +118,10 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(3)
     void addPassenger_shouldReturnPassengerResponse_whenPassengerUnique() {
-        PassengerResponse expected = getSecondPassengerResponse();
-        PassengerCreationRequest creationRequest = getSecondPassengerCreationRequest();
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
+        PassengerResponse expected = getThirdPassengerResponse();
+        PassengerCreationRequest creationRequest = getPassengerRequestWithUniqueData();
 
         PassengerResponse actual = given()
                 .request()
@@ -179,8 +140,8 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(4)
     void addPassenger_shouldReturnExceptionResponse_whenEmailNotUnique() {
+        passengerRepository.save(getSecondPassenger());
         PassengerCreationRequest creationRequest = getNotUniqueEmailPassengerRequest();
 
         ExceptionResponse actual = given()
@@ -203,8 +164,9 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(5)
     void addPassenger_shouldReturnExceptionResponse_whenPhoneNotUnique() {
+        passengerRepository.save(getSecondPassenger());
+        passengerRepository.deleteById(THIRD_ID);
         PassengerCreationRequest creationRequest = getNotUniquePhonePassengerRequest();
 
         ExceptionResponse actual = given()
@@ -227,10 +189,8 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(5)
     void getAllPassengers() {
-        passengerRepository.save(getSecondPassenger());
-
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
         PassengersListResponse expected = getDefaultPassengersListResponse(getPassengerResponsesList());
 
         PassengersListResponse actual = get()
@@ -246,8 +206,9 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(6)
     void blockPassenger_whenPassengerExists() {
+        passengerRepository.save(getDefaultPassenger());
+
         post("/" + DEFAULT_ID + "/block")
                 .then()
                 .assertThat()
@@ -258,7 +219,6 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(7)
     void blockPassenger_shouldReturnExceptionResponse_whenPassengerNotFound() {
         ExceptionResponse actual = post("/" + DEFAULT_ID + "/block")
                 .then()
@@ -274,8 +234,10 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(8)
     void getBlockedPassengers_shouldReturnPassengersListResponse() {
+        Passenger passenger = getDefaultPassenger();
+        passenger.setBlocked(BLOCKED);
+        passengerRepository.save(passenger);
         PassengerResponse passengerResponse = getDefaultPassengerResponse();
         passengerResponse.setBlocked(BLOCKED);
         List<PassengerResponse> passengerResponses = List.of(
@@ -295,9 +257,8 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(9)
     void updatePassenger_shouldReturnExceptionResponse_whenPassengerNotFound() {
-        PassengerCreationRequest request = getDefaultPassengerRequestForUpdate();
+        PassengerCreationRequest request = getPassengerRequestWithUniqueData();
 
         ExceptionResponse actual = given()
                 .request()
@@ -318,10 +279,9 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(10)
     void updatePassenger_shouldReturnPassengerResponse_whenPassengerExistsAndDataIsUnique() {
         PassengerResponse expected = getUpdatedPassengerResponse();
-        PassengerCreationRequest request = getDefaultPassengerRequestForUpdate();
+        PassengerCreationRequest request = getPassengerRequestWithUniqueData();
 
         passengerRepository.save(getDefaultPassenger());
         PassengerResponse actual = given()
@@ -341,8 +301,8 @@ class PassengerControllerTest {
     }
 
     @Test
-    @Order(11)
     void updatePassenger_shouldReturnExceptionResponse_whenEmailIsNotUnique() {
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
         PassengerCreationRequest request = getNotUniqueEmailPassengerRequest();
 
         ExceptionResponse actual = given()
@@ -363,11 +323,9 @@ class PassengerControllerTest {
         Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
     }
 
-
     @Test
-    @Order(11)
     void updatePassenger_shouldReturnExceptionResponse_whenPhoneIsNotUnique() {
-
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
         PassengerCreationRequest request = getNotUniquePhonePassengerRequest();
 
         ExceptionResponse actual = given()

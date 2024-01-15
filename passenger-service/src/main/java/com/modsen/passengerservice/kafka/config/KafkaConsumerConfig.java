@@ -13,7 +13,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
@@ -23,18 +22,18 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     public Map<String, Object> consumerConfig() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        return props;
+        return Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class,
+                JsonDeserializer.VALUE_DEFAULT_TYPE, RatingUpdateDto.class,
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"
+        );
     }
 
     @Bean
     public ConsumerFactory<String, RatingUpdateDto> consumerFactoryRatingUpdateDto() {
-        Map<String, Object> props = consumerConfig();
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, RatingUpdateDto.class);
-        return new DefaultKafkaConsumerFactory<>(props);
+        return new DefaultKafkaConsumerFactory<>(consumerConfig());
     }
 
     @Bean

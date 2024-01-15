@@ -1,6 +1,7 @@
 package com.modsen.passengerservice.service.impl;
 
 import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
+import com.modsen.passengerservice.dto.request.RatingUpdateDto;
 import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
 import com.modsen.passengerservice.entity.Passenger;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +27,7 @@ public class PassengerServiceImpl implements PassengerService {
     private final ModelMapper modelMapper;
 
     private PassengerResponse toDto(Passenger passenger) {
-        PassengerResponse dto = modelMapper.map(passenger, PassengerResponse.class);
-        dto.setRating(getRatingById(dto.getId()));
-        return dto;
+        return modelMapper.map(passenger, PassengerResponse.class);
     }
 
     private Passenger toModel(PassengerCreationRequest passenger) {
@@ -37,7 +35,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private PassengersListResponse getList() {
-        List<PassengerResponse> passengers = passengerRepository.findAll()
+        List<PassengerResponse> passengers = passengerRepository.findAllByIsBlockedIsFalse()
                 .stream()
                 .map(this::toDto)
                 .toList();
@@ -49,17 +47,23 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengerResponse getById(Long id) {
-        Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
-        if (optionalPassenger.isPresent()) {
-            return optionalPassenger
-                    .map(this::toDto)
-                    .get();
-        } else throw new NotFoundException("id", "message.passenger.id.notFound");
+        return toDto(getEntityById(id));
     }
 
-    public void deletePassenger(Long id) {
-        checkExistence(id);
-        passengerRepository.deleteById(id);
+    private Passenger getEntityById(Long id) {
+        return passengerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("id", "message.passenger.id.notFound"));
+    }
+
+    private Passenger getNotBlockedEntityById(Long id) {
+        return passengerRepository.getByIdAndIsBlockedIsFalse(id)
+                .orElseThrow(() -> new NotFoundException("id", "message.passenger.id.notFound"));
+    }
+
+    public void blockPassenger(Long id) {
+        Passenger passenger = getNotBlockedEntityById(id);
+        passenger.setBlocked(true);
+        passengerRepository.save(passenger);
     }
 
     public PassengerResponse addPassenger(PassengerCreationRequest dto) {
@@ -68,16 +72,21 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengerResponse updatePassenger(Long id, PassengerCreationRequest dto) {
-        checkExistence(id);
+        Passenger passenger = getNotBlockedEntityById(id);
+
         checkConstraints(id, dto);
-        Passenger passenger = toModel(dto);
-        passenger.setId(id);
+
+        passenger.setName(dto.getName());
+        passenger.setSurname(dto.getSurname());
+        passenger.setEmail(dto.getEmail());
+        passenger.setPhone(dto.getPhone());
+
         return toDto(passengerRepository.save(passenger));
     }
 
     private void checkConstraints(Long id, PassengerCreationRequest dto) {
-        Optional<Passenger> passengerByEmail = getEntityByEmail(dto.getEmail());
-        Optional<Passenger> passengerByPhone = getEntityByPhone(dto.getPhone());
+        Optional<Passenger> passengerByEmail = getNotBlockedEntityByEmail(dto.getEmail());
+        Optional<Passenger> passengerByPhone = getNotBlockedEntityByPhone(dto.getPhone());
         if (passengerByEmail.isPresent() && !Objects.equals(passengerByEmail.get().getId(), id)) {
             throw new NotCreatedException("email", "message.passenger.email.alreadyExists");
         }
@@ -86,22 +95,16 @@ public class PassengerServiceImpl implements PassengerService {
         }
     }
 
-    private Optional<Passenger> getEntityByEmail(String email) {
-        return passengerRepository.findPassengerByEmail(email);
+    private Optional<Passenger> getNotBlockedEntityByEmail(String email) {
+        return passengerRepository.findPassengerByEmailAndIsBlockedIsFalse(email);
     }
 
-    private Optional<Passenger> getEntityByPhone(String phone) {
-        return passengerRepository.findPassengerByPhone(phone);
+    private Optional<Passenger> getNotBlockedEntityByPhone(String phone) {
+        return passengerRepository.findPassengerByPhoneAndIsBlockedIsFalse(phone);
     }
 
-    private void checkExistence(Long id) {
-        if (!passengerRepository.existsById(id)) {
-            throw new NotFoundException("id", "message.passenger.id.notFound");
-        }
-    }
-
-    private PassengersListResponse getListWithPaginationAndSort(Integer offset, Integer page, String field) {
-        Page<PassengerResponse> responsePage = passengerRepository.findAll(PageRequest.of(page, offset)
+    private PassengersListResponse getListWithPaginationAndSort(Integer limit, Integer page, String field) {
+        Page<PassengerResponse> responsePage = passengerRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, limit)
                         .withSort(Sort.by(field)))
                 .map(this::toDto);
         return PassengersListResponse.builder()
@@ -113,8 +116,8 @@ public class PassengerServiceImpl implements PassengerService {
                 .build();
     }
 
-    private PassengersListResponse getListWithPagination(Integer offset, Integer page) {
-        Page<PassengerResponse> responsePage = passengerRepository.findAll(PageRequest.of(page, offset))
+    private PassengersListResponse getListWithPagination(Integer limit, Integer page) {
+        Page<PassengerResponse> responsePage = passengerRepository.findAllByIsBlockedIsFalse(PageRequest.of(page, limit))
                 .map(this::toDto);
         return PassengersListResponse.builder()
                 .passengers(responsePage.getContent())
@@ -125,7 +128,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     private PassengersListResponse getListWithSort(String field) {
-        List<PassengerResponse> responseList = passengerRepository.findAll(Sort.by(field))
+        List<PassengerResponse> responseList = passengerRepository.findAllByIsBlockedIsFalse(Sort.by(field))
                 .stream()
                 .map(this::toDto)
                 .toList();
@@ -133,26 +136,37 @@ public class PassengerServiceImpl implements PassengerService {
                 .passengers(responseList)
                 .size(responseList.size())
                 .sortedByField(field)
+                .total(responseList.size())
                 .build();
     }
 
-    public Double getRatingById(Long id) {
-        checkExistence(id);
-        // в будущем здесь будет обращение к сервису рейтингов для получения рейтинга пассажира
-        double rating = new Random().nextDouble(1, 5);
-        rating = Math.round(rating * 10) / 10.0;
-        return rating;
-    }
-
-    public PassengersListResponse getPassengersList(Integer offset, Integer page, String field) {
-        if (offset != null && page != null && field != null) {
-            return getListWithPaginationAndSort(offset, page, field);
-        } else if (offset != null && page != null) {
-            return getListWithPagination(offset, page);
+    public PassengersListResponse getPassengersList(Integer limit, Integer page, String field) {
+        if (limit != null && page != null && field != null) {
+            return getListWithPaginationAndSort(limit, page, field);
+        } else if (limit != null && page != null) {
+            return getListWithPagination(limit, page);
         } else if (field != null) {
             return getListWithSort(field);
         }
 
         return getList();
+    }
+
+    public PassengersListResponse getBlockedPassengersList() {
+        List<PassengerResponse> responseList = passengerRepository.findAllByIsBlockedIsTrue()
+                .stream()
+                .map(this::toDto)
+                .toList();
+        return PassengersListResponse.builder()
+                .passengers(responseList)
+                .size(responseList.size())
+                .total(responseList.size())
+                .build();
+    }
+
+    public void updateRating(RatingUpdateDto dto) {
+        Passenger passenger = getEntityById(dto.getUserId());
+        passenger.setRating(dto.getRating());
+        passengerRepository.save(passenger);
     }
 }

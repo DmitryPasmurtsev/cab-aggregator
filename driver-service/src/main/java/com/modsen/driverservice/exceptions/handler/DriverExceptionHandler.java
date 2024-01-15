@@ -1,5 +1,7 @@
 package com.modsen.driverservice.exceptions.handler;
 
+import com.modsen.driverservice.exceptions.CustomException;
+import com.modsen.driverservice.exceptions.NotAvailableDriverException;
 import com.modsen.driverservice.exceptions.NotCreatedException;
 import com.modsen.driverservice.exceptions.NotFoundException;
 import com.modsen.driverservice.exceptions.response.ExceptionResponse;
@@ -24,8 +26,8 @@ public class DriverExceptionHandler {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<ExceptionResponse> handleNotCreatedException(NotCreatedException ex) {
+    @ExceptionHandler(value = {NotCreatedException.class, NotAvailableDriverException.class})
+    public ResponseEntity<ExceptionResponse> handleNotCreatedAndDriverStatusException(CustomException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 

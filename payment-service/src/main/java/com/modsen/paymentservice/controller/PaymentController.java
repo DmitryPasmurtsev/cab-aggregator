@@ -4,14 +4,23 @@ import com.modsen.paymentservice.dto.request.CardRequest;
 import com.modsen.paymentservice.dto.request.ChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerChargeRequest;
 import com.modsen.paymentservice.dto.request.CustomerRequest;
-import com.modsen.paymentservice.dto.response.*;
+import com.modsen.paymentservice.dto.response.BalanceCheckResponse;
+import com.modsen.paymentservice.dto.response.BalanceResponse;
+import com.modsen.paymentservice.dto.response.ChargeResponse;
+import com.modsen.paymentservice.dto.response.CustomerResponse;
+import com.modsen.paymentservice.dto.response.StringResponse;
 import com.modsen.paymentservice.service.PaymentService;
 import com.stripe.exception.StripeException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/v1/payments")
@@ -19,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentService paymentService;
-
 
     @PostMapping("/charge")
     public StringResponse chargeCard(@RequestBody @Valid ChargeRequest chargeRequest) throws StripeException {
@@ -47,8 +55,13 @@ public class PaymentController {
         return paymentService.getBalance();
     }
 
+    @PostMapping("/customers/checkBalance")
+    public BalanceCheckResponse checkBalance(@RequestBody CustomerChargeRequest dto) throws StripeException {
+        return paymentService.checkCustomersBalance(dto);
+    }
+
     @PostMapping("/customers/charge")
-    public ChargeResponse chargeFromCustomer(@RequestBody @Valid CustomerChargeRequest request) throws StripeException {
-        return paymentService.chargeFromCustomer(request);
+    public ChargeResponse chargeFromCustomer(@RequestBody @Valid CustomerChargeRequest dto) throws StripeException {
+        return paymentService.chargeFromCustomer(dto);
     }
 }

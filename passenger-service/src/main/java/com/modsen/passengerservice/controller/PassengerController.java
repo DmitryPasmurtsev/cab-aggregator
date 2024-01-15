@@ -3,14 +3,12 @@ package com.modsen.passengerservice.controller;
 import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
 import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
-import com.modsen.passengerservice.dto.response.RatingResponse;
 import com.modsen.passengerservice.service.PassengerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,10 +32,18 @@ public class PassengerController {
             summary = "Get all passengers"
     )
     public PassengersListResponse getAllPassengers(
-            @RequestParam(required = false) Integer offset,
+            @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String field) {
-        return passengerService.getPassengersList(offset, page, field);
+        return passengerService.getPassengersList(limit, page, field);
+    }
+
+    @GetMapping("/blocked")
+    @Operation(
+            summary = "Get blocked passengers"
+    )
+    public PassengersListResponse getBlockedPassengers() {
+        return passengerService.getBlockedPassengersList();
     }
 
     @GetMapping("/{id}")
@@ -65,21 +71,12 @@ public class PassengerController {
         return passengerService.updatePassenger(id, passengerDTO);
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/block")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @Operation(
-            summary = "Remove passenger"
+            summary = "Block passenger"
     )
-    public void deletePassenger(@PathVariable Long id) {
-        passengerService.deletePassenger(id);
-    }
-
-    @GetMapping("/{id}/rating")
-    @Operation(
-            summary = "Get passenger's rating"
-    )
-    //этот метод в будущем стоит перенести в микросервис рейтингов
-    public RatingResponse getPassengerRating(@PathVariable Long id) {
-        return new RatingResponse(passengerService.getRatingById(id), id);
+    public void blockPassenger(@PathVariable Long id) {
+        passengerService.blockPassenger(id);
     }
 }

@@ -1,5 +1,6 @@
 package com.modsen.paymentservice.exceptions.handler;
 
+import com.modsen.paymentservice.exceptions.BalanceException;
 import com.modsen.paymentservice.exceptions.CustomException;
 import com.modsen.paymentservice.exceptions.NotCreatedException;
 import com.modsen.paymentservice.exceptions.NotFoundException;
@@ -23,8 +24,8 @@ public class RideExceptionHandler {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {NotCreatedException.class})
-    public ResponseEntity<ExceptionResponse> handleNotCreatedException(CustomException ex) {
+    @ExceptionHandler(value = {NotCreatedException.class, BalanceException.class})
+    public ResponseEntity<ExceptionResponse> handleNotCreatedExceptionAndBalanceException(CustomException ex) {
         return new ResponseEntity<>(createResponse(ex.getField(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 

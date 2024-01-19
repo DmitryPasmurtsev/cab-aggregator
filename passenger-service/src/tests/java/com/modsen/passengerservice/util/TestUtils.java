@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @UtilityClass
@@ -52,6 +53,10 @@ public class TestUtils {
     public final String PASSENGER_EMAIL_ALREADY_EXISTS = "message.passenger.email.alreadyExists";
     public final String PASSENGER_PHONE_ALREADY_EXISTS = "message.passenger.phone.alreadyExists";
     public final String PASSENGER_IS_BLOCKED = "validation.passenger.isBlocked";
+    public final String MESSAGE_FIELD_NAME = "message";
+
+    public final String KAFKA_IMAGE = "confluentinc/cp-kafka:6.2.1";
+    public final String POSTGRES_IMAGE = "postgres:15-alpine";
 
 
     public Passenger getDefaultPassenger() {
@@ -135,6 +140,7 @@ public class TestUtils {
     }
 
     public PassengersListResponse getDefaultPassengersListResponse(List<PassengerResponse> passengers) {
+        Collections.reverse(passengers);
         return PassengersListResponse.builder()
                 .passengers(passengers)
                 .size(passengers.size())
@@ -145,7 +151,7 @@ public class TestUtils {
     public PassengersListResponse getPassengersListResponseWithSort(List<PassengerResponse> passengers) {
         return PassengersListResponse.builder()
                 .passengers(passengers)
-                .size(passengers.size())
+                .size(Math.min(passengers.size(), VALID_SIZE))
                 .total(passengers.size())
                 .sortedByField(VALID_ORDER_BY)
                 .build();
@@ -154,7 +160,7 @@ public class TestUtils {
     public PassengersListResponse getPassengersListResponseWithPagination(List<PassengerResponse> passengers) {
         return PassengersListResponse.builder()
                 .passengers(passengers)
-                .size(passengers.size())
+                .size(Math.min(passengers.size(), VALID_SIZE))
                 .total(passengers.size())
                 .page(VALID_PAGE)
                 .build();
@@ -163,7 +169,7 @@ public class TestUtils {
     public PassengersListResponse getPassengersListResponseWithSortAndPagination(List<PassengerResponse> passengers) {
         return PassengersListResponse.builder()
                 .passengers(passengers)
-                .size(passengers.size())
+                .size(Math.min(passengers.size(), VALID_SIZE))
                 .total(passengers.size())
                 .page(VALID_PAGE)
                 .sortedByField(VALID_ORDER_BY)

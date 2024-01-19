@@ -8,7 +8,6 @@ import com.modsen.passengerservice.exceptions.response.ExceptionResponse;
 import com.modsen.passengerservice.integration.BaseIntegrationTest;
 import com.modsen.passengerservice.repository.PassengerRepository;
 import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -25,10 +24,8 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.Locale;
 
+import static com.modsen.passengerservice.util.RestAssuredClient.*;
 import static com.modsen.passengerservice.util.TestUtils.*;
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.post;
 
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -52,7 +49,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
     private final MessageSource messageSource;
 
     @BeforeEach
-    void setUp() {
+    public void beforeEach() {
         RestAssured.baseURI = "http://localhost:" + port + "/api/v1/passengers";
     }
 
@@ -61,7 +58,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         passengerRepository.save(getDefaultPassenger());
         PassengerResponse expected = getDefaultPassengerResponse();
 
-        PassengerResponse actual = get("/" + DEFAULT_ID)
+        PassengerResponse actual = sendGetByIdRequest(DEFAULT_ID)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.OK.value())
@@ -74,7 +71,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
     @Test
     void getPassengerById_shouldReturnExceptionResponse_whenPassengerNotFound() {
-        ExceptionResponse actual = get("/" + THIRD_ID)
+        ExceptionResponse actual = sendGetByIdRequest(THIRD_ID)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.NOT_FOUND.value())
@@ -89,12 +86,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
     void addPassenger_shouldReturnExceptionResponse_whenRequestNotValid() {
         PassengerCreationRequest creationRequest = getNotValidPassengerCreationRequest();
 
-        ExceptionResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(creationRequest)
-                .when()
-                .post()
+        ExceptionResponse actual = sendCreationRequest(creationRequest)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -108,7 +100,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         String expectedPhoneError = messageSource.getMessage(PASSENGER_PHONE_NOT_VALID, null, locale);
 
         List<String> actualErrors = actual.getErrorMessage().stream()
-                .map(err -> err.get("message"))
+                .map(err -> err.get(MESSAGE_FIELD_NAME))
                 .toList();
         Assertions.assertEquals(4, actualErrors.size());
         Assertions.assertTrue(actualErrors.contains(expectedNameError));
@@ -123,12 +115,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         PassengerResponse expected = getThirdPassengerResponse();
         PassengerCreationRequest creationRequest = getPassengerRequestWithUniqueData();
 
-        PassengerResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(creationRequest)
-                .when()
-                .post()
+        PassengerResponse actual = sendCreationRequest(creationRequest)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.CREATED.value())
@@ -144,12 +131,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         passengerRepository.save(getSecondPassenger());
         PassengerCreationRequest creationRequest = getNotUniqueEmailPassengerRequest();
 
-        ExceptionResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(creationRequest)
-                .when()
-                .post()
+        ExceptionResponse actual = sendCreationRequest(creationRequest)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -160,7 +142,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         String expectedError = messageSource.getMessage(PASSENGER_EMAIL_ALREADY_EXISTS, null, locale);
 
         Assertions.assertEquals(1, actual.getErrorMessage().size());
-        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
+        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get(MESSAGE_FIELD_NAME));
     }
 
     @Test
@@ -169,12 +151,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         passengerRepository.deleteById(THIRD_ID);
         PassengerCreationRequest creationRequest = getNotUniquePhonePassengerRequest();
 
-        ExceptionResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(creationRequest)
-                .when()
-                .post()
+        ExceptionResponse actual = sendCreationRequest(creationRequest)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -185,7 +162,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         String expectedError = messageSource.getMessage(PASSENGER_PHONE_ALREADY_EXISTS, null, locale);
 
         Assertions.assertEquals(1, actual.getErrorMessage().size());
-        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
+        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get(MESSAGE_FIELD_NAME));
     }
 
     @Test
@@ -193,7 +170,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
         PassengersListResponse expected = getDefaultPassengersListResponse(getPassengerResponsesList());
 
-        PassengersListResponse actual = get()
+        PassengersListResponse actual = sendGetAllRequest(null, null, null)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.OK.value())
@@ -202,14 +179,62 @@ class PassengerControllerTest extends BaseIntegrationTest {
                 .as(PassengersListResponse.class);
 
         Assertions.assertEquals(expected, actual);
-        Assertions.assertArrayEquals(expected.getPassengers().toArray(), actual.getPassengers().toArray());
+    }
+
+    @Test
+    void getAllPassengersWithSorting() {
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
+        PassengersListResponse expected = getPassengersListResponseWithSort(getPassengerResponsesList());
+
+        PassengersListResponse actual = sendGetAllRequest(null, null, VALID_ORDER_BY)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .body()
+                .as(PassengersListResponse.class);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    void getAllPassengersWithPagination() {
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
+        PassengersListResponse expected = getPassengersListResponseWithPagination(getPassengerResponsesList());
+
+        PassengersListResponse actual = sendGetAllRequest(VALID_SIZE, VALID_PAGE, null)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .body()
+                .as(PassengersListResponse.class);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    void getAllPassengersWithPaginationAndSorting() {
+        passengerRepository.deleteById(THIRD_ID);
+        passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
+        PassengersListResponse expected = getPassengersListResponseWithSortAndPagination(getPassengerResponsesList());
+
+        PassengersListResponse actual = sendGetAllRequest(VALID_SIZE, VALID_PAGE, VALID_ORDER_BY)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .body()
+                .as(PassengersListResponse.class);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
     void blockPassenger_whenPassengerExists() {
         passengerRepository.save(getDefaultPassenger());
 
-        post("/" + DEFAULT_ID + "/block")
+        sendBlockRequest(DEFAULT_ID)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
@@ -220,7 +245,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
     @Test
     void blockPassenger_shouldReturnExceptionResponse_whenPassengerNotFound() {
-        ExceptionResponse actual = post("/" + DEFAULT_ID + "/block")
+        ExceptionResponse actual = sendBlockRequest(DEFAULT_ID)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.NOT_FOUND.value())
@@ -230,7 +255,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
         String expectedError = messageSource.getMessage(PASSENGER_ID_NOT_FOUND, null, locale);
 
-        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
+        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get(MESSAGE_FIELD_NAME));
     }
 
     @Test
@@ -245,7 +270,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         );
         PassengersListResponse expected = getDefaultPassengersListResponse(passengerResponses);
 
-        PassengersListResponse actual = get("/blocked")
+        PassengersListResponse actual = sendGetBlockedPassengersRequest()
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.OK.value())
@@ -260,12 +285,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
     void updatePassenger_shouldReturnExceptionResponse_whenPassengerNotFound() {
         PassengerCreationRequest request = getPassengerRequestWithUniqueData();
 
-        ExceptionResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(request)
-                .when()
-                .put("/" + DEFAULT_ID)
+        ExceptionResponse actual = sendUpdateRequest(THIRD_ID, request)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.NOT_FOUND.value())
@@ -275,7 +295,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
         String expectedError = messageSource.getMessage(PASSENGER_ID_NOT_FOUND, null, locale);
 
-        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
+        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get(MESSAGE_FIELD_NAME));
     }
 
     @Test
@@ -284,12 +304,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         PassengerCreationRequest request = getPassengerRequestWithUniqueData();
 
         passengerRepository.save(getDefaultPassenger());
-        PassengerResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(request)
-                .when()
-                .put("/" + DEFAULT_ID)
+        PassengerResponse actual = sendUpdateRequest(DEFAULT_ID, request)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.OK.value())
@@ -305,12 +320,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
         PassengerCreationRequest request = getNotUniqueEmailPassengerRequest();
 
-        ExceptionResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(request)
-                .when()
-                .put("/" + DEFAULT_ID)
+        ExceptionResponse actual = sendUpdateRequest(DEFAULT_ID, request)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -320,7 +330,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
         String expectedError = messageSource.getMessage(PASSENGER_EMAIL_ALREADY_EXISTS, null, locale);
 
-        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
+        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get(MESSAGE_FIELD_NAME));
     }
 
     @Test
@@ -328,12 +338,7 @@ class PassengerControllerTest extends BaseIntegrationTest {
         passengerRepository.saveAll(List.of(getDefaultPassenger(), getSecondPassenger()));
         PassengerCreationRequest request = getNotUniquePhonePassengerRequest();
 
-        ExceptionResponse actual = given()
-                .request()
-                .contentType(ContentType.JSON)
-                .body(request)
-                .when()
-                .put("/" + DEFAULT_ID)
+        ExceptionResponse actual = sendUpdateRequest(DEFAULT_ID, request)
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -343,6 +348,6 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
         String expectedError = messageSource.getMessage(PASSENGER_PHONE_ALREADY_EXISTS, null, locale);
 
-        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get("message"));
+        Assertions.assertEquals(expectedError, actual.getErrorMessage().get(0).get(MESSAGE_FIELD_NAME));
     }
 }

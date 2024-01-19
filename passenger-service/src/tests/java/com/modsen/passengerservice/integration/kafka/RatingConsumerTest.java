@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -31,12 +32,15 @@ public class RatingConsumerTest extends BaseIntegrationTest {
 
     @Container
     @ServiceConnection
-    static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
+    static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse(KAFKA_IMAGE));
 
     @DynamicPropertySource
     static void initKafkaProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
+
+    @Value("${topic.name.rating}")
+    private String topic;
 
     private final PassengerRepository passengerRepository;
     private final KafkaTemplate<String, RatingUpdateDto> kafkaTemplate;
@@ -57,7 +61,7 @@ public class RatingConsumerTest extends BaseIntegrationTest {
     void updatePassengerRating_shouldUpdatePassengerRating_whenMessageConsumed() {
         passengerRepository.save(getDefaultPassenger());
 
-        kafkaTemplate.send("update-passenger-rating", getRatingUpdateDto());
+        kafkaTemplate.send(topic, getRatingUpdateDto());
 
         await()
                 .pollInterval(Duration.ofSeconds(3))

@@ -9,6 +9,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.modsen.passengerservice.util.TestUtils.*;
+
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -16,7 +18,7 @@ public class BaseIntegrationTest {
 
     @Container
     protected static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            "postgres:15-alpine"
+            POSTGRES_IMAGE
     );
 
     @DynamicPropertySource

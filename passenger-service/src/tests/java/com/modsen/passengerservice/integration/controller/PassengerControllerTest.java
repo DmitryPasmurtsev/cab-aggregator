@@ -3,7 +3,6 @@ package com.modsen.passengerservice.integration.controller;
 import com.modsen.passengerservice.dto.request.PassengerCreationRequest;
 import com.modsen.passengerservice.dto.response.PassengerResponse;
 import com.modsen.passengerservice.dto.response.PassengersListResponse;
-import com.modsen.passengerservice.entity.Passenger;
 import com.modsen.passengerservice.exceptions.response.ExceptionResponse;
 import com.modsen.passengerservice.integration.BaseIntegrationTest;
 import com.modsen.passengerservice.repository.PassengerRepository;
@@ -260,13 +259,9 @@ class PassengerControllerTest extends BaseIntegrationTest {
 
     @Test
     void getBlockedPassengers_shouldReturnPassengersListResponse() {
-        Passenger passenger = getDefaultPassenger();
-        passenger.setBlocked(BLOCKED);
-        passengerRepository.save(passenger);
-        PassengerResponse passengerResponse = getDefaultPassengerResponse();
-        passengerResponse.setBlocked(BLOCKED);
+        passengerRepository.save(getDefaultBlockedPassenger());
         List<PassengerResponse> passengerResponses = List.of(
-                passengerResponse
+                getDefaultBlockedPassengerResponse()
         );
         PassengersListResponse expected = getDefaultPassengersListResponse(passengerResponses);
 

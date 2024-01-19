@@ -70,6 +70,12 @@ public class TestUtils {
                 .build();
     }
 
+    public Passenger getDefaultBlockedPassenger() {
+        Passenger passenger = getDefaultPassenger();
+        passenger.setBlocked(BLOCKED);
+        return passenger;
+    }
+
     public Passenger getSecondPassenger() {
         return Passenger.builder()
                 .id(NEW_ID)
@@ -88,6 +94,12 @@ public class TestUtils {
                 .email(DEFAULT_EMAIL)
                 .phone(DEFAULT_PHONE)
                 .build();
+    }
+
+    public PassengerResponse getDefaultBlockedPassengerResponse() {
+        PassengerResponse response = getDefaultPassengerResponse();
+        response.setBlocked(BLOCKED);
+        return response;
     }
 
     public PassengerResponse getSecondPassengerResponse() {
